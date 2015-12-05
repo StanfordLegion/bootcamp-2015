@@ -16,6 +16,8 @@ import "regent"
 
 local c = regentlib.c
 local std = terralib.includec("stdlib.h")
+local fcntl = terralib.includec("fcntl.h")
+local unistd = terralib.includec("unistd.h")
 rawset(_G, "drand48", std.drand48)
 rawset(_G, "srand48", std.srand48)
 
@@ -24,7 +26,7 @@ local CktConfig = require("session1/circuit_config")
 local helper = {}
 
 local WIRE_SEGMENTS = 3
-local DT = 1e-6
+local dT = 1e-7
 
 task helper.generate_random_circuit(rn : region(Node),
                                     rw : region(Wire(rn)),
@@ -70,7 +72,7 @@ do
       wire.resistance = drand48() * 10.0 + 1.0
 
       -- Keep inductance on the order of 1e-3 * dt to avoid resonance problems
-      wire.inductance = (drand48() + 0.1) * DT * 1e-3
+      wire.inductance = (drand48() + 0.1) * dT * 1e-3
       wire.capacitance = drand48() * 0.1
 
       var in_node = ptr_offset + [uint](drand48() * npp)
@@ -176,6 +178,82 @@ task helper.wait_for(rn : region(Node), rw : region(Wire(rn)))
 where reads(rn, rw)
 do
   __wait_for(__block(rn, rw))
+end
+
+terra helper.dump_solution(filename : &int8,
+                           runtime : c.legion_runtime_t,
+                           ctx : c.legion_context_t,
+                           rn : c.legion_physical_region_t[4],
+                           rn_fields : c.legion_field_id_t[4],
+                           rw : c.legion_physical_region_t[10],
+                           rw_fields : c.legion_field_id_t[10])
+
+  var fd = fcntl.open(filename, fcntl.O_RDWR or fcntl.O_CREAT)
+  regentlib.assert(fd >= 0, "failed to open input file")
+
+  var offset = 0
+  for i = 2, 4 do
+    var fa = c.legion_physical_region_get_field_accessor_array(rn[i], rn_fields[i])
+    var itr = c.legion_index_iterator_create(runtime, ctx,
+              c.legion_physical_region_get_logical_region(rn[i]).index_space)
+    while c.legion_index_iterator_has_next(itr) do
+      var start : c.legion_ptr_t
+      var count : uint64
+      start = c.legion_index_iterator_next_span(itr, &count, -1)
+
+      var amt = unistd.pwrite(fd,
+        [&float](c.legion_accessor_array_ref(fa, start)),
+        sizeof(float) * count,
+        offset)
+      regentlib.assert(amt == sizeof(float) * count, "short write!")
+      offset = offset + sizeof(float) * count
+    end
+  end
+  for i = 5, 10 do
+    var fa = c.legion_physical_region_get_field_accessor_array(rw[i], rw_fields[i])
+    var itr = c.legion_index_iterator_create(runtime, ctx,
+              c.legion_physical_region_get_logical_region(rw[i]).index_space)
+    while c.legion_index_iterator_has_next(itr) do
+      var start : c.legion_ptr_t
+      var count : uint64
+      start = c.legion_index_iterator_next_span(itr, &count, -1)
+
+      var amt = unistd.pwrite(fd,
+        [&float](c.legion_accessor_array_ref(fa, start)),
+        sizeof(float) * count,
+        offset)
+      regentlib.assert(amt == sizeof(float) * count, "short write!")
+      offset = offset + sizeof(float) * count
+    end
+  end
+  unistd.close(fd)
+end
+
+terra helper.read_solution(filename : &int8,
+                           node_charge : &float,
+                           node_voltage : &float,
+                           wire_currents : &float,
+                           wire_voltages : &float,
+                           num_nodes : int, num_wires : int)
+  var fd = fcntl.open(filename, fcntl.O_RDONLY)
+  regentlib.assert(fd >= 0, "failed to open input file")
+
+  var offset = 0
+  var amt = 0
+  var nodes_size = sizeof(float) * num_nodes
+  var wires_size = sizeof(float) * num_wires
+  amt = unistd.pread(fd, node_charge, nodes_size, offset)
+  regentlib.assert(amt == nodes_size, "short read!")
+  offset = offset + nodes_size
+  amt = unistd.pread(fd, node_voltage, nodes_size, offset)
+  regentlib.assert(amt == nodes_size, "short read!")
+  offset = offset + nodes_size
+  amt = unistd.pread(fd, wire_currents, wires_size * 3, offset)
+  regentlib.assert(amt == wires_size * 3, "short read!")
+  offset = offset + wires_size * 3
+  amt = unistd.pread(fd, wire_voltages, wires_size * 2, offset)
+  regentlib.assert(amt == wires_size * 2, "short read!")
+  offset = offset + wires_size * 2
 end
 
 return helper
