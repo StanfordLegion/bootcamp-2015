@@ -23,8 +23,8 @@ struct Currents {
 }
 
 struct Voltages {
-  _0 : float,
   _1 : float,
+  _2 : float,
 }
 
 -- FIXME: declare fieldspace 'Node' that contains the following fields:
@@ -37,8 +37,8 @@ fspace Node
 }
 
 -- FIXME: declare fieldspace 'Wire' that contains following fields:
---          'in_ptr' of pointer type to region(Node)
---          'out_ptr' of pointer type to region(Node)
+--          'in_node' of pointer type to region(Node)
+--          'out_node' of pointer type to region(Node)
 --          'inductance' of type float
 --          'resistance' of type float
 --          'current' of structure type 'Currents'

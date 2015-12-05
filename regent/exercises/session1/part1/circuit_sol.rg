@@ -23,8 +23,8 @@ struct Currents {
 }
 
 struct Voltages {
-  _0 : float,
   _1 : float,
+  _2 : float,
 }
 
 fspace Node {
@@ -35,8 +35,8 @@ fspace Node {
 }
 
 fspace Wire(rn : region(Node)) {
-  in_ptr      : ptr(Node, rn),
-  out_ptr     : ptr(Node, rn),
+  in_node     : ptr(Node, rn),
+  out_node    : ptr(Node, rn),
   inductance  : float,
   resistance  : float,
   capacitance : float,

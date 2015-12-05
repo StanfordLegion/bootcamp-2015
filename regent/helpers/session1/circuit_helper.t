@@ -68,7 +68,7 @@ do
         regentlib.assert(false, "circuit generation failed")
       end
       wire.current.{_0, _1, _2} = 0.0
-      wire.voltage.{_0, _1} = 0.0
+      wire.voltage.{_1, _2} = 0.0
       wire.resistance = drand48() * 10.0 + 1.0
 
       -- Keep inductance on the order of 1e-3 * dt to avoid resonance problems
@@ -76,8 +76,8 @@ do
       wire.capacitance = drand48() * 0.1
 
       var in_node = ptr_offset + [uint](drand48() * npp)
-      wire.in_ptr = dynamic_cast(ptr(Node, rn), [ptr](in_node))
-      regentlib.assert(not isnull(wire.in_ptr),
+      wire.in_node = dynamic_cast(ptr(Node, rn), [ptr](in_node))
+      regentlib.assert(not isnull(wire.in_node),
         "picked an invalid random pointer")
 
       var out_node = 0
@@ -97,8 +97,8 @@ do
         end
         out_node = pp * npp + idx
       end
-      wire.out_ptr = dynamic_cast(ptr(Node, rn), [ptr](out_node))
-      regentlib.assert(not isnull(wire.out_ptr),
+      wire.out_node = dynamic_cast(ptr(Node, rn), [ptr](out_node))
+      regentlib.assert(not isnull(wire.out_node),
         "picked an invalid random pointer within a piece")
     end
   end
@@ -107,15 +107,19 @@ do
   -- check validity of pointers
   var invalid_pointers = 0
   for w in rw do
-    w.in_ptr = dynamic_cast(ptr(Node, rn), w.in_ptr)
-    if isnull(w.in_ptr) then invalid_pointers += 1 end
-    w.out_ptr = dynamic_cast(ptr(Node, rn), w.out_ptr)
-    if isnull(w.out_ptr) then invalid_pointers += 1 end
+    w.in_node = dynamic_cast(ptr(Node, rn), w.in_node)
+    if isnull(w.in_node) then invalid_pointers += 1 end
+    w.out_node = dynamic_cast(ptr(Node, rn), w.out_node)
+    if isnull(w.out_node) then invalid_pointers += 1 end
   end
   regentlib.assert(invalid_pointers == 0, "there are some invalid pointers")
 end
 
-terra helper.calculate_gflops(sim_time : double, conf : CktConfig)
+terra helper.calculate_gflops(sim_time : double,
+                              flops_calculate_new_currents : uint,
+                              flops_distribute_charge: uint,
+                              flops_update_voltages : uint,
+                              conf : CktConfig)
 
   -- Compute the floating point operations per second
   var num_circuit_nodes : uint64 = conf.num_pieces * conf.nodes_per_piece
@@ -123,11 +127,11 @@ terra helper.calculate_gflops(sim_time : double, conf : CktConfig)
 
   -- calculate currents
   var operations : uint64 =
-  num_circuit_wires * (WIRE_SEGMENTS * 6 + (WIRE_SEGMENTS - 1) * 4) * conf.steps
+  num_circuit_wires * flops_calculate_new_currents * conf.steps
   -- distribute charge
-  operations = operations + (num_circuit_wires * 4)
+  operations = operations + num_circuit_wires * flops_distribute_charge
   -- update voltages
-  operations = operations + (num_circuit_nodes * 4)
+  operations = operations + num_circuit_nodes * flops_update_voltages
   -- multiply by the number of loops
   operations = operations * conf.num_loops
 
@@ -151,13 +155,13 @@ do
     for i = 0, wpp do
       var wire = dynamic_cast(ptr(Wire(rn), rw), [ptr](p * wpp + i))
       var wire_type = "owned"
-      if __raw(wire.out_ptr).value >= (p + 1) * npp or
-         __raw(wire.out_ptr).value < p * npp
+      if __raw(wire.out_node).value >= (p + 1) * npp or
+         __raw(wire.out_node).value < p * npp
       then
          wire_type = "crossing"
       end
       c.printf("  edge %d: %d -> %d (%s)\n",
-        __raw(wire), __raw(wire.in_ptr), __raw(wire.out_ptr), wire_type)
+        __raw(wire), __raw(wire.in_node), __raw(wire.out_node), wire_type)
     end
   end
 end

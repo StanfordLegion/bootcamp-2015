@@ -64,6 +64,7 @@ do
     elseif not (cmath.fabs(n.voltage - node_voltage[p]) < 1e-5) then
       c.printf("[node %d] computed voltage: %.6f, expected voltage: %.6f\n",
         p, n.voltage, node_voltage[p])
+      passed = false
     end
   end
   for i = 0, 3 do
@@ -79,21 +80,23 @@ do
       if not (diff < 1e-5) then
         c.printf("[node %d] computed current%d: %.6f, expected current%d: %.6f\n",
           p, i, current, i, wire_currents[p + offset])
+        passed = false
       end
     end
   end
-  for i = 0, 2 do
-    var offset = num_wires * i
+  for i = 1, 3 do
+    var offset = num_wires * (i - 1)
     __forbid(__vectorize)
     for w in rw do
       var voltage : float
-      if i == 0 then voltage = w.voltage._0
-      else voltage = w.voltage._1 end
+      if i == 1 then voltage = w.voltage._1
+      else voltage = w.voltage._2 end
       var p = __raw(w).value
       var diff = cmath.fabs(voltage - wire_voltages[p + offset])
       if not (diff < 1e-5) then
         c.printf("[node %d] computed voltage%d: %.6f, expected voltage%d: %.6f\n",
           p, i, voltage, i, wire_voltages[p + offset])
+        passed = false
       end
     end
   end
