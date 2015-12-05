@@ -48,58 +48,72 @@ local CktConfig = require("session1/circuit_config")
 local helper = require("session1/circuit_helper")
 local validator = require("session1/circuit_validator")
 
+local WS = 3
 local dT = 1e-7
 
--- FIXME: Implement task 'calculate_new_currents'.
---
--- This task updates currents and voltages of wire segments.
--- Each wire consists of three segments and can be drawn like this:
---
---         current._1            current._2            current._3
--- in_node ---------- voltage._1 ---------- voltage._2 ---------- out_node
---
--- The RLC model you have to implement is this:
---
---     I_i^s = ((V_i+1^s - V_i^s) - L * (I_i^s - I_i^0) / dT) / R
---     V_i+1^s = V_i^0 + dT * (I_i^s - I_i+1^s) / C
---
--- At each time step, the difference in voltages induces currents on
--- each segment and the induced currents acculmulates to the voltage
--- at each node. After all steps done, the final currents and voltages should
--- be saved back to the region. Implement the body of the task based on this.
---
-task calculate_new_currents(conf : CktConfig
-                            -- FIXME: Declare parameters as you need
-                           )
--- FIXME: Declare right privileges
+task calculate_new_currents(steps : uint,
+                            rn : region(Node),
+                            rw : region(Wire(rn)))
+where reads(rn.voltage,
+            rw.{in_node, out_node, inductance, resistance, capacitance}),
+      reads writes(rw.{current, voltage})
+do
+  var rdT : float = 1.0 / dT
+  __demand(__vectorize)
+  for w in rw do
+    var temp_v : float[WS + 1]
+    var temp_i : float[WS]
+    var old_i : float[WS]
+    var old_v : float[WS - 1]
 
-  --for w in rw do
-  --  for j = 0, conf.steps do
-  --  end
-  --end
+    temp_i[0] = w.current._0 temp_i[1] = w.current._1 temp_i[2] = w.current._2
+    for i = 0, WS do old_i[i] = temp_i[i] end
+
+    temp_v[1] = w.voltage._1 temp_v[2] = w.voltage._2
+    for i = 0, WS - 1 do old_v[i] = temp_v[i + 1] end
+
+    -- Pin the outer voltages to the node voltages
+    temp_v[0] = w.in_node.voltage
+    temp_v[WS] = w.out_node.voltage
+
+    -- Solve the RLC model iteratively
+    var L : float = w.inductance
+    var rR : float = 1.0 / w.resistance
+    var rC : float = 1.0 / w.capacitance
+    for j = 0, steps do
+      -- first, figure out the new current from the voltage differential
+      -- and our inductance:
+      -- dV = R*I + L*I' ==> I = (dV - L*I')/R
+      for i = 0, WS do
+        temp_i[i] = ((temp_v[i + 1] - temp_v[i]) -
+                     (L * (temp_i[i] - old_i[i]) * rdT)) * rC
+      end
+      -- Now update the inter-node voltages
+      for i = 0, WS - 1 do
+        temp_v[i + 1] = old_v[i] + dT * (temp_i[i] - temp_i[i + 1]) * rC
+      end
+    end
+
+    -- Write out the results
+    w.current._0 = temp_i[0] w.current._1 = temp_i[1] w.current._2 = temp_i[2]
+
+    w.voltage._1 = temp_v[1] w.voltage._2 = temp_v[2]
+  end
 end
 
--- FIXME: Implement task 'distribute_charge'.
---
--- This task adjusts the charge of in_node and out_node of each wire.
--- As currents has flown from in_node to out_node, electrons have been taken
--- from the former and delivered to the latter. The contribution of the currents
--- to the charge is formulated as:
---
---     dCharge = dT * I
---
--- Implement the task body based on the given description.
---
-task distribute_charge( -- FIXME: Declare parameters as you need
-                      )
--- FIXME: Declare right privileges
-
-  --for w in rw do
-  --end
+task distribute_charge(rn : region(Node),
+                       rw : region(Wire(rn)))
+where reads(rw.{in_node, out_node, current._0, current._2}),
+      reads writes(rn.charge)
+do
+  for w in rw do
+    var in_current = -dT * w.current._0
+    var out_current = dT * w.current._2
+    w.in_node.charge += in_current
+    w.out_node.charge += out_current
+  end
 end
 
--- The 'update_voltages' task accumulates the contribution of
--- charge to voltage and then applies leakage
 task update_voltages(rn : region(Node))
 where reads(rn.{capacitance, leakage}),
       reads writes(rn.{voltage, charge})
@@ -136,12 +150,8 @@ task toplevel()
   var ts_start = helper.timestamp()
 
   for j = 0, conf.num_loops do
-    -- FIXME: Call your tasks in the simulation loop.
-    --
-    -- Tasks should run in the following order:
-    --   1) calculate_new_currents
-    --   2) distribute_charge
-    --   3) update_voltages
+    calculate_new_currents(conf.steps, rn, rw)
+    distribute_charge(rn, rw)
     update_voltages(rn)
   end
 
@@ -152,15 +162,8 @@ task toplevel()
 
   var sim_time = 1e-6 * (ts_end - ts_start)
   c.printf("ELAPSED TIME = %7.3f s\n", sim_time)
-
-  -- Bonus Point: Calculate FLOPS of your implementation.
-  --
-  -- The 'helper.calculate_gflops' function calculates the total FLOPS based on
-  -- the flops per iteration of each task. Hard-code the right values of them
-  -- below and you can get the total FLOPS.
-  var flops_cnc, flops_dc, flops_uv = 0, 0, 0
   var gflops =
-    helper.calculate_gflops(sim_time, flops_cnc, flops_dc, flops_uv, conf)
+    helper.calculate_gflops(sim_time, WS * 6 + (WS - 1) * 4, 4, 4, conf)
   c.printf("GFLOPS = %7.3f GFLOPS\n", gflops)
 
   c.printf("Validating simulation results...\n")
