@@ -48,26 +48,10 @@ local CktConfig = require("session1/circuit_config")
 local helper = require("session1/circuit_helper")
 local validator = require("session1/circuit_validator")
 
+-- The length of a timestep is 0.1 us
 local dT = 1e-7
 
 -- FIXME: Implement task 'calculate_new_currents'.
---
--- This task updates currents and voltages of wire segments.
--- Each wire consists of three segments and can be drawn like this:
---
---         current._1            current._2            current._3
--- in_node ---------- voltage._1 ---------- voltage._2 ---------- out_node
---
--- The RLC model you have to implement is this:
---
---     I_i^s = ((V_i+1^s - V_i^s) - L * (I_i^s - I_i^0) / dT) / R
---     V_i+1^s = V_i^0 + dT * (I_i^s - I_i+1^s) / C
---
--- At each time step, the difference in voltages induces currents on
--- each segment and the induced currents acculmulates to the voltage
--- at each node. After all steps done, the final currents and voltages should
--- be saved back to the region. Implement the body of the task based on this.
---
 task calculate_new_currents(conf : CktConfig
                             -- FIXME: Declare parameters as you need
                            )
@@ -80,16 +64,6 @@ task calculate_new_currents(conf : CktConfig
 end
 
 -- FIXME: Implement task 'distribute_charge'.
---
--- This task adjusts the charge of in_node and out_node of each wire.
--- As currents has flown from in_node to out_node, electrons have been taken
--- from the former and delivered to the latter. The contribution of the currents
--- to the charge is formulated as:
---
---     dCharge = dT * I
---
--- Implement the task body based on the given description.
---
 task distribute_charge( -- FIXME: Declare parameters as you need
                       )
 -- FIXME: Declare right privileges
@@ -135,13 +109,8 @@ task toplevel()
   c.printf("Starting main simulation loop\n")
   var ts_start = helper.timestamp()
 
+  -- FIXME: Complete the simulation loop.
   for j = 0, conf.num_loops do
-    -- FIXME: Call your tasks in the simulation loop.
-    --
-    -- Tasks should run in the following order:
-    --   1) calculate_new_currents
-    --   2) distribute_charge
-    --   3) update_voltages
     update_voltages(rn)
   end
 
@@ -154,10 +123,6 @@ task toplevel()
   c.printf("ELAPSED TIME = %7.3f s\n", sim_time)
 
   -- Bonus Point: Calculate FLOPS of your implementation.
-  --
-  -- The 'helper.calculate_gflops' function calculates the total FLOPS based on
-  -- the flops per iteration of each task. Hard-code the right values of them
-  -- below and you can get the total FLOPS.
   var flops_cnc, flops_dc, flops_uv = 0, 0, 0
   var gflops =
     helper.calculate_gflops(sim_time, flops_cnc, flops_dc, flops_uv, conf)
