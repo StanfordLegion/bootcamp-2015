@@ -6,23 +6,30 @@ Let's implement the rest of the circuit simulation. Your task is to implement tw
 
 This task updates currents and voltages of wire segments. Each wire consists of three segments and can be drawn like this:
 
-             `current.\_1`                  `current.\_2`                  `current.\_3`
-`in\_node` ---------------- `voltage.\_1` ---------------- `voltage.\_2` ---------------- `out\_node`
+$\hskip{8em}I_0\hskip{11.5em}I_1\hskip{11em}I_2$
+
+               current._0                 current._1                current._2
+                   
+    in_node --------------- voltage._1 -------------- voltage._2 ------------- out_node
+
+$\hskip{2.5em}V_0\hskip{10em}V_1\hskip{11em}V_2\hskip{10em}V_3$
 
 On this topology of wire segments, the RLC model you are going to implement is described by the following equation:
 
-    $I_i^s = ((V_i+1^s - V_i^s) - L * (I_i^s - I_i^0) / dT) / R$
-    $V_i+1^s = V_i^0 + dT * (I_i^s - I_i+1^s) / C$
+$\large I_i^s = \big((V_{i+1}^s - V_i^s) - L \frac{I_i^s - I_i^0}{dT}\big)/R\quad \textrm{for}\quad 0 \le i \le 3$
 
-At each time step, the difference in voltages induces currents on each segment and the induced currents acculmulates to the voltage at each node. The task will repeatly compute new currents and voltages for `conf.steps` times, and once all steps are done, it should store the final currents and voltages back to the region of wires.
+$\large V_{i+1}^s = V_i^0 + \frac{I_i^s - I_{i+1}^s}{C}dT \quad \textrm{for}\quad 0 \le i \le 2$
+
+
+At each time step $s$, the difference in voltages induces currents on each segment and the induced currents acculmulates to the voltage at each node. The task will repeatly compute new currents and voltages for `conf.steps` times, and once all steps are done, it should store the final currents and voltages back to the region of wires.
 
 Implement the body of the task based on this description.
 
 ## Implement task `distribute_charge`
 
-This task adjusts the charge of `in\_node` and `out\_node` of each wire. Since the currents have flown from `in\_node` to `out\_node`, charges have been taken from the former and delivered to the latter. The contribution of the currents to the charge is formulated as this:
+This task adjusts the charge of `in_node` and `out_node` of each wire. Since the currents have flown from `in_node` to `out_node`, charges have been taken from the former and delivered to the latter. The contribution of the currents to the charge is formulated as this:
 
-    $dCharge = dT * I$
+$\large \mathit{dCharge} = \mathit{I} \times \mathit{dT}$
 
 Implement the task body based on the given description.
 
