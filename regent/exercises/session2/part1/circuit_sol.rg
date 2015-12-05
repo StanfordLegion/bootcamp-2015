@@ -67,13 +67,14 @@ task toplevel()
 
   var colors = ispace(int1d, conf.num_pieces)
   var pn_equal = partition(equal, rn, colors)
-  var pw_out = preimage(rw, pn_equal, rw.in_ptr)
-  var pw_in = preimage(rw, pn_equal, rw.out_ptr)
-  var pn_out = image(rn, pw_out, rw.out_ptr)
-  var pn_in = image(rn, pw_in, rw.in_ptr)
-  var pn_private = pn_equal & pn_in & pn_out
-  var pn_shared = pn_equal - pn_private
-  var pn_ghost = pn_out - pn_equal
+  var pw_outgoing = preimage(rw, pn_equal, rw.in_ptr)
+  var pw_incoming = preimage(rw, pn_equal, rw.out_ptr)
+  var pw_crossing_out = pw_outgoing - pw_incoming
+  var pw_crossing_in = pw_incoming - pw_outgoing
+  var pw_crossing = pw_crossing_out | pw_crossing_in
+  var pn_shared = pn_equal & (image(rn, pw_crossing, rw.in_ptr) | image(rn, pw_crossing, rw.out_ptr))
+  var pn_private = pn_equal - pn_shared
+  var pn_ghost = (image(rn, pw_crossing_out, rw.out_ptr) | image(rn, pw_crossing_in, rw.in_ptr)) - pn_shared
 
   helper.dump_graph(conf, rn, rw)
 end
