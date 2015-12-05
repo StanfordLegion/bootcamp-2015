@@ -16,6 +16,7 @@
 #
 
 from __future__ import print_function
+from getopt import getopt
 import errno, json, os, shutil, subprocess, sys
 
 def make_markdown_cell(source):
@@ -56,17 +57,17 @@ def make_notebook(cells):
         'nbformat_minor': 0,
     }
 
-def make_session_notebook(source_dir, notebook_path):
+def make_session_notebook(source_dir, notebook_path, regent_file):
     instructions_path = os.path.join(source_dir, 'instructions.md')
     instructions = make_markdown_cell(open(instructions_path, 'rb').read())
     syntax_path = os.path.join(source_dir, 'syntax.rg')
     syntax = make_code_cell(open(syntax_path, 'rb').read())
-    circuit_path = os.path.join(source_dir, 'circuit.rg')
+    circuit_path = os.path.join(source_dir, regent_file)
     circuit = make_code_cell(open(circuit_path, 'rb').read())
     notebook = make_notebook([instructions, syntax, circuit])
     with open(notebook_path, 'wb') as f: json.dump(notebook, f, indent=1)
 
-def make_all_sessions(exercise_dir, helpers_dir, notebook_dir):
+def make_all_sessions(exercise_dir, helpers_dir, notebook_dir, with_solution):
     dirty = subprocess.check_output(['git', '-C', helpers_dir, 'clean', '-nxd'])
     if len(dirty.strip()) > 0:
         print('Please clean up {} and run again.'.format(os.path.relpath(helpers_dir)))
@@ -83,7 +84,11 @@ def make_all_sessions(exercise_dir, helpers_dir, notebook_dir):
             session = os.path.basename(os.path.dirname(path_dir)).partition('session')
             assert(part[0] == '' and session[0] == '')
             notebook_name = 'Session {} Part {}.ipynb'.format(session[2], part[2])
-            make_session_notebook(path_dir, os.path.join(notebook_dir, notebook_name))
+            make_session_notebook(path_dir, os.path.join(notebook_dir, notebook_name), 'circuit.rg')
+            if with_solution:
+                notebook_name = 'Session {} Part {} Solution.ipynb'.format(session[2], part[2])
+                make_session_notebook(path_dir, os.path.join(notebook_dir, notebook_name), 'circuit_sol.rg')
+
     os.path.walk(exercise_dir, make, None)
 
     for name in os.listdir(helpers_dir):
@@ -93,8 +98,14 @@ def make_all_sessions(exercise_dir, helpers_dir, notebook_dir):
             shutil.copytree(src_dir, dst_dir)
 
 if __name__ == '__main__':
+    with_solution = False
+    opts, args = getopt(sys.argv[1:], 's')
+    opts = dict(opts)
+    if '-s' in opts:
+        with_solution = True
+
     root_dir = os.path.dirname(os.path.realpath(__file__))
     exercises_dir = os.path.join(root_dir, 'regent', 'exercises')
     helpers_dir = os.path.join(root_dir, 'regent', 'helpers')
     notebook_dir = os.path.join(root_dir, 'regent', 'notebooks')
-    make_all_sessions(exercises_dir, helpers_dir, notebook_dir)
+    make_all_sessions(exercises_dir, helpers_dir, notebook_dir, with_solution)
