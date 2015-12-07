@@ -16,6 +16,8 @@ import "regent"
 
 local c = regentlib.c
 local std = terralib.includec("stdlib.h")
+local fcntl = terralib.includec("fcntl.h")
+local unistd = terralib.includec("unistd.h")
 rawset(_G, "drand48", std.drand48)
 rawset(_G, "srand48", std.srand48)
 
@@ -24,10 +26,10 @@ local CktConfig = require("session1/circuit_config")
 local helper = {}
 
 local WIRE_SEGMENTS = 3
-local DT = 1e-6
+local dT = 1e-7
 
 task helper.generate_random_circuit(rn : region(Node),
-                                    rw : region(Wire(rn)),
+                                    rw : region(Wire(rn, rn, rn)),
                                     conf : CktConfig)
 where reads writes(rn, rw)
 do
@@ -59,23 +61,23 @@ do
   for p = 0, npieces do
     var ptr_offset = p * npp
     for i = 0, wpp do
-      var wire = dynamic_cast(ptr(Wire(rn), rw), [ptr](p * wpp + i))
+      var wire = dynamic_cast(ptr(Wire(rn, rn, rn), rw), [ptr](p * wpp + i))
       if isnull(wire) then
         c.printf("the wire region was not big enough to pick %dth wire\n",
           p * wpp + i)
         regentlib.assert(false, "circuit generation failed")
       end
       wire.current.{_0, _1, _2} = 0.0
-      wire.voltage.{_0, _1} = 0.0
+      wire.voltage.{_1, _2} = 0.0
       wire.resistance = drand48() * 10.0 + 1.0
 
       -- Keep inductance on the order of 1e-3 * dt to avoid resonance problems
-      wire.inductance = (drand48() + 0.1) * DT * 1e-3
+      wire.inductance = (drand48() + 0.1) * dT * 1e-3
       wire.capacitance = drand48() * 0.1
 
       var in_node = ptr_offset + [uint](drand48() * npp)
-      wire.in_ptr = dynamic_cast(ptr(Node, rn), [ptr](in_node))
-      regentlib.assert(not isnull(wire.in_ptr),
+      wire.in_node = dynamic_cast(ptr(Node, rn, rn), [ptr](in_node))
+      regentlib.assert(not isnull(wire.in_node),
         "picked an invalid random pointer")
 
       var out_node = 0
@@ -95,8 +97,8 @@ do
         end
         out_node = pp * npp + idx
       end
-      wire.out_ptr = dynamic_cast(ptr(Node, rn), [ptr](out_node))
-      regentlib.assert(not isnull(wire.out_ptr),
+      wire.out_node = dynamic_cast(ptr(Node, rn, rn, rn), [ptr](out_node))
+      regentlib.assert(not isnull(wire.out_node),
         "picked an invalid random pointer within a piece")
     end
   end
@@ -105,15 +107,19 @@ do
   -- check validity of pointers
   var invalid_pointers = 0
   for w in rw do
-    w.in_ptr = dynamic_cast(ptr(Node, rn), w.in_ptr)
-    if isnull(w.in_ptr) then invalid_pointers += 1 end
-    w.out_ptr = dynamic_cast(ptr(Node, rn), w.out_ptr)
-    if isnull(w.out_ptr) then invalid_pointers += 1 end
+    w.in_node = dynamic_cast(ptr(Node, rn, rn), w.in_node)
+    if isnull(w.in_node) then invalid_pointers += 1 end
+    w.out_node = dynamic_cast(ptr(Node, rn, rn, rn), w.out_node)
+    if isnull(w.out_node) then invalid_pointers += 1 end
   end
   regentlib.assert(invalid_pointers == 0, "there are some invalid pointers")
 end
 
-terra helper.calculate_gflops(sim_time : double, conf : CktConfig)
+terra helper.calculate_gflops(sim_time : double,
+                              flops_calculate_new_currents : uint,
+                              flops_distribute_charge: uint,
+                              flops_update_voltages : uint,
+                              conf : CktConfig)
 
   -- Compute the floating point operations per second
   var num_circuit_nodes : uint64 = conf.num_pieces * conf.nodes_per_piece
@@ -121,11 +127,11 @@ terra helper.calculate_gflops(sim_time : double, conf : CktConfig)
 
   -- calculate currents
   var operations : uint64 =
-  num_circuit_wires * (WIRE_SEGMENTS * 6 + (WIRE_SEGMENTS - 1) * 4) * conf.steps
+  num_circuit_wires * flops_calculate_new_currents * conf.steps
   -- distribute charge
-  operations = operations + (num_circuit_wires * 4)
+  operations = operations + num_circuit_wires * flops_distribute_charge
   -- update voltages
-  operations = operations + (num_circuit_nodes * 4)
+  operations = operations + num_circuit_nodes * flops_update_voltages
   -- multiply by the number of loops
   operations = operations * conf.num_loops
 
@@ -135,7 +141,7 @@ end
 
 task helper.dump_graph(conf : CktConfig,
                        rn : region(Node),
-                       rw : region(Wire(rn)))
+                       rw : region(Wire(rn, rn, rn)))
 where reads(rn, rw)
 do
   var npp = conf.nodes_per_piece
@@ -143,26 +149,26 @@ do
   for p = 0, conf.num_pieces do
     c.printf("piece %d:\n", p)
     for i = 0, npp do
-      var node = dynamic_cast(ptr(Node, rn), [ptr](p * npp + i))
+      var node = dynamic_cast(ptr(Node, rn, rn), [ptr](p * npp + i))
       c.printf("  node %d\n", __raw(node))
     end
     for i = 0, wpp do
-      var wire = dynamic_cast(ptr(Wire(rn), rw), [ptr](p * wpp + i))
+      var wire = dynamic_cast(ptr(Wire(rn, rn, rn), rw), [ptr](p * wpp + i))
       var wire_type = "owned"
-      if __raw(wire.out_ptr).value >= (p + 1) * npp or
-         __raw(wire.out_ptr).value < p * npp
+      if __raw(wire.out_node).value >= (p + 1) * npp or
+         __raw(wire.out_node).value < p * npp
       then
          wire_type = "crossing"
       end
       c.printf("  edge %d: %d -> %d (%s)\n",
-        __raw(wire), __raw(wire.in_ptr), __raw(wire.out_ptr), wire_type)
+        __raw(wire), __raw(wire.in_node), __raw(wire.out_node), wire_type)
     end
   end
 end
 
 helper.timestamp = c.legion_get_current_time_in_micros
 
-task __block(rn : region(Node), rw : region(Wire(rn)))
+task __block(rn : region(Node), rw : region(Wire(rn, rn, rn)))
 where reads(rn, rw)
 do
   return 1
@@ -172,10 +178,37 @@ local terra __wait_for(x : int)
 end
 
 __demand(__inline)
-task helper.wait_for(rn : region(Node), rw : region(Wire(rn)))
+task helper.wait_for(rn : region(Node), rw : region(Wire(rn, rn, rn)))
 where reads(rn, rw)
 do
   __wait_for(__block(rn, rw))
+end
+
+terra helper.read_solution(filename : &int8,
+                           node_charge : &float,
+                           node_voltage : &float,
+                           wire_currents : &float,
+                           wire_voltages : &float,
+                           num_nodes : int, num_wires : int)
+  var fd = fcntl.open(filename, fcntl.O_RDONLY)
+  regentlib.assert(fd >= 0, "failed to open input file")
+
+  var offset = 0
+  var amt = 0
+  var nodes_size = sizeof(float) * num_nodes
+  var wires_size = sizeof(float) * num_wires
+  amt = unistd.pread(fd, node_charge, nodes_size, offset)
+  regentlib.assert(amt == nodes_size, "short read!")
+  offset = offset + nodes_size
+  amt = unistd.pread(fd, node_voltage, nodes_size, offset)
+  regentlib.assert(amt == nodes_size, "short read!")
+  offset = offset + nodes_size
+  amt = unistd.pread(fd, wire_currents, wires_size * 3, offset)
+  regentlib.assert(amt == wires_size * 3, "short read!")
+  offset = offset + wires_size * 3
+  amt = unistd.pread(fd, wire_voltages, wires_size * 2, offset)
+  regentlib.assert(amt == wires_size * 2, "short read!")
+  offset = offset + wires_size * 2
 end
 
 return helper

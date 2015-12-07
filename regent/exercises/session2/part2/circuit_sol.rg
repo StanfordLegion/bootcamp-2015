@@ -16,13 +16,13 @@ import "regent"
 
 local c = regentlib.c
 
-fspace Currents {
+struct Currents {
   _0 : float,
   _1 : float,
   _2 : float,
 }
 
-fspace Voltages {
+struct Voltages {
   _1 : float,
   _2 : float,
 }
@@ -35,7 +35,7 @@ fspace Node {
 }
 
 fspace Wire(rpn : region(Node), rsn : region(Node), rgn : region(Node)) {
-  in_node     : ptr(Node, rpn, rsn, rgn),
+  in_node     : ptr(Node, rpn, rsn),
   out_node    : ptr(Node, rpn, rsn, rgn),
   inductance  : float,
   resistance  : float,
@@ -46,9 +46,9 @@ fspace Wire(rpn : region(Node), rsn : region(Node), rgn : region(Node)) {
 
 local CktConfig = require("session1/circuit_config")
 local helper = require("session2/circuit_helper")
-local validator = require("session1/circuit_validator")
+local validator = require("session2/circuit_validator")
 
-local WIRE_SEGMENTS = 3
+local WS = 3
 local dT = 1e-7
 
 task calculate_new_currents(steps : uint,
@@ -61,42 +61,42 @@ where
         rw.{in_node, out_node, inductance, resistance, capacitance}),
   reads writes(rw.{current, voltage})
 do
-  var recip_dt : float = 1.0 / dT
+  var rdT : float = 1.0 / dT
   __demand(__vectorize)
   for w in rw do
-    var temp_v : float[WIRE_SEGMENTS + 1]
-    var temp_i : float[WIRE_SEGMENTS]
-    var old_i : float[WIRE_SEGMENTS]
-    var old_v : float[WIRE_SEGMENTS - 1]
+    var temp_v : float[WS + 1]
+    var temp_i : float[WS]
+    var old_i : float[WS]
+    var old_v : float[WS - 1]
 
     temp_i[0] = w.current._0
     temp_i[1] = w.current._1
     temp_i[2] = w.current._2
-    for i = 0, WIRE_SEGMENTS do old_i[i] = temp_i[i] end
+    for i = 0, WS do old_i[i] = temp_i[i] end
 
     temp_v[1] = w.voltage._1
     temp_v[2] = w.voltage._2
-    for i = 0, WIRE_SEGMENTS - 1 do old_v[i] = temp_v[i + 1] end
+    for i = 0, WS - 1 do old_v[i] = temp_v[i + 1] end
 
     -- Pin the outer voltages to the node voltages.
     temp_v[0] = w.in_node.voltage
-    temp_v[WIRE_SEGMENTS] = w.out_node.voltage
+    temp_v[WS] = w.out_node.voltage
 
     -- Solve the RLC model iteratively.
-    var inductance : float = w.inductance
-    var recip_resistance : float = 1.0 / w.resistance
-    var recip_capacitance : float = 1.0 / w.capacitance
+    var L : float = w.inductance
+    var rR : float = 1.0 / w.resistance
+    var rC : float = 1.0 / w.capacitance
     for j = 0, steps do
       -- First, figure out the new current from the voltage differential
       -- and our inductance:
       -- dV = R*I + L*I' ==> I = (dV - L*I')/R
-      for i = 0, WIRE_SEGMENTS do
+      for i = 0, WS do
         temp_i[i] = ((temp_v[i + 1] - temp_v[i]) -
-                     (inductance * (temp_i[i] - old_i[i]) * recip_dt)) * recip_resistance
+                     (L * (temp_i[i] - old_i[i]) * rdT)) * rC
       end
       -- Now update the inter-node voltages.
-      for i = 0, WIRE_SEGMENTS - 1 do
-        temp_v[i + 1] = old_v[i] + dT * (temp_i[i] - temp_i[i + 1]) * recip_capacitance
+      for i = 0, WS - 1 do
+        temp_v[i + 1] = old_v[i] + dT * (temp_i[i] - temp_i[i + 1]) * rC
       end
     end
 
@@ -128,14 +128,14 @@ end
 
 task update_voltages(rn : region(Node))
 where
-  reads(rn.{node_cap, leakage}),
+  reads(rn.{capacitance, leakage}),
   reads writes(rn.{voltage, charge})
 do
-  for node in rn do
-    var voltage = node.voltage + node.charge / node.node_cap
-    voltage = voltage * (1.0 - node.leakage)
-    node.voltage = voltage
-    node.charge = 0.0
+  for n in rn do
+    var voltage = n.voltage + n.charge / n.capacitance
+    voltage = voltage * (1.0 - n.leakage)
+    n.voltage = voltage
+    n.charge = 0.0
   end
 end
 
@@ -169,7 +169,7 @@ task toplevel()
 
   var pw = pw_outgoing
 
-  helper.dump_graph(conf, rn, rw)
+  --helper.dump_graph(conf, rn, rw)
 
   c.printf("Starting main simulation loop\n")
   var ts_start = helper.timestamp()
@@ -182,8 +182,7 @@ task toplevel()
       distribute_charge(pn_private[i], pn_shared[i], pn_ghost[i], pw[i])
     end
     for i = 0, conf.num_pieces do
-      update_voltages(pn_private[i])
-      update_voltages(pn_shared[i])
+      update_voltages(pn_equal[i])
     end
   end
 

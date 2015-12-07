@@ -16,13 +16,13 @@ import "regent"
 
 local c = regentlib.c
 
-fspace Currents {
+struct Currents {
   _0 : float,
   _1 : float,
   _2 : float,
 }
 
-fspace Voltages {
+struct Voltages {
   _1 : float,
   _2 : float,
 }
@@ -142,7 +142,7 @@ task toplevel()
 
   c.printf("Generating a random circuit...\n")
   helper.generate_random_circuit(rn, rw, conf)
-  helper.dump_graph(conf, rn, rw)
+  --helper.dump_graph(conf, rn, rw)
 
   c.printf("Starting main simulation loop\n")
   var ts_start = helper.timestamp()

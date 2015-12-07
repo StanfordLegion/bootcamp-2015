@@ -2,13 +2,13 @@ import "regent"
 
 local c = regentlib.c
 
-fspace Currents {
+struct Currents {
   _0 : float,
   _1 : float,
   _2 : float,
 }
 
-fspace Voltages {
+struct Voltages {
   _1 : float,
   _2 : float,
 }
@@ -34,7 +34,7 @@ fspace Wire(rn : region(Node)) {
 
 local CktConfig = require("session1/circuit_config")
 local helper = require("session2/circuit_helper")
-local validator = require("session1/circuit_validator")
+local validator = require("session2/circuit_validator")
 
 local WIRE_SEGMENTS = 3
 local dT = 1e-7

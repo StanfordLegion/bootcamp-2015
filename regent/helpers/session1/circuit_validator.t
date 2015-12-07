@@ -22,6 +22,21 @@ local CktConfig = require("session1/circuit_config")
 local helper = require("session1/circuit_helper")
 local cmath = terralib.includec("math.h")
 
+local EPS = 1e-3
+
+local terra compare_value(type     : &int8,
+                          computed : float,
+                          expected : float)
+  var diff = cmath.fabs(computed - expected)
+  var check = "X"
+  var passed = false
+  if diff <= EPS then check, passed = "O", true
+  elseif diff / computed <= EPS then check, passed = "O", true end
+  c.printf("  [%s] computed: %.5g, expected: %.5g (%s)\n",
+    type, computed, expected, check)
+  return passed
+end
+
 task validator.validate_solution(rn : region(Node),
                                  rw : region(Wire(rn)),
                                  conf : CktConfig)
@@ -56,48 +71,42 @@ do
   var passed = true
   for n in rn do
     var p = __raw(n).value
-    if not (cmath.fabs(n.charge - node_charge[p]) < 1e-5) then
-      c.printf("[node %d] computed charge: %.6f, expected charge: %.6f\n",
-        p, n.charge, node_charge[p])
+    c.printf("node %d:\n", p)
+    if not compare_value("charge", n.charge, node_charge[p]) then
       passed = false
-    elseif not (cmath.fabs(n.voltage - node_voltage[p]) < 1e-5) then
-      c.printf("[node %d] computed voltage: %.6f, expected voltage: %.6f\n",
-        p, n.voltage, node_voltage[p])
+    end
+    if not compare_value("voltage", n.voltage, node_voltage[p]) then
       passed = false
     end
   end
-  for i = 0, 3 do
-    var offset = num_wires * i
-    for w in rw do
+  for w in rw do
+    var p = __raw(w).value
+    c.printf("wire %d:\n", p)
+    for i = 0, 3 do
+      var offset = num_wires * i
+      var prefix : int8[16]
+      c.sprintf([&int8](prefix), "current%d", i)
       var current : float
       if i == 0 then current = w.current._0
       elseif i == 1 then current = w.current._1
       else current = w.current._2 end
-      var p = __raw(w).value
-      var diff = cmath.fabs(current - wire_currents[p + offset])
-      if not (diff < 1e-5) then
-        c.printf("[node %d] computed current%d: %.6f, expected current%d: %.6f\n",
-          p, i, current, i, wire_currents[p + offset])
+      if not compare_value(prefix, current, wire_currents[p + offset]) then
         passed = false
       end
     end
-  end
-  for i = 1, 3 do
-    var offset = num_wires * (i - 1)
-    for w in rw do
+    for i = 1, 3 do
+      var offset = num_wires * (i - 1)
+      var prefix : int8[16]
+      c.sprintf([&int8](prefix), "voltage%d", i)
       var voltage : float
       if i == 1 then voltage = w.voltage._1
       else voltage = w.voltage._2 end
-      var p = __raw(w).value
-      var diff = cmath.fabs(voltage - wire_voltages[p + offset])
-      if not (diff < 1e-5) then
-        c.printf("[node %d] computed voltage%d: %.6f, expected voltage%d: %.6f\n",
-          p, i, voltage, i, wire_voltages[p + offset])
+      if not compare_value(prefix, voltage, wire_voltages[p + offset]) then
         passed = false
       end
     end
   end
-  regentlib.assert(passed, "validation failed!")
+  regentlib.assert(passed, "Validation failed!")
   c.printf("Validation passed!\n")
 end
 
