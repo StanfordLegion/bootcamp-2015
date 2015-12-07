@@ -16,13 +16,13 @@ import "regent"
 
 local c = regentlib.c
 
-struct Currents {
+fspace Currents {
   _0 : float,
   _1 : float,
   _2 : float,
 }
 
-struct Voltages {
+fspace Voltages {
   _0 : float,
   _1 : float,
 }
@@ -62,7 +62,6 @@ task toplevel()
   new(ptr(Wire(rn), rw), num_circuit_wires)
 
   c.printf("Generating random circuit...\n")
-
   helper.generate_random_circuit(rn, rw, conf)
 
   var colors = ispace(int1d, conf.num_pieces)

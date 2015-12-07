@@ -2,13 +2,13 @@ import "regent"
 
 local c = regentlib.c
 
-struct Currents {
+fspace Currents {
   _0 : float,
   _1 : float,
   _2 : float,
 }
 
-struct Voltages {
+fspace Voltages {
   _1 : float,
   _2 : float,
 }
