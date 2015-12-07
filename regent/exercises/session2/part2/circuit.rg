@@ -45,7 +45,7 @@ task calculate_new_currents(steps : uint,
                             rn : region(Node),
                             rw : region(Wire(rn)))
 where
-  reads(rpn.voltage, rsn.voltage, rgn.voltage,
+  reads(rn.voltage,
         rw.{in_node, out_node, inductance, resistance, capacitance}),
   reads writes(rw.{current, voltage})
 do
@@ -104,7 +104,7 @@ task distribute_charge(rn : region(Node),
                        rw : region(Wire(rn)))
 where
   reads(rw.{in_node, out_node, current._0, current._2}),
-  reduces +(rpn.charge, rsn.charge, rgn.charge)
+  reduces +(rn.charge)
 do
   for w in rw do
     var in_current = -dT * w.current._0
