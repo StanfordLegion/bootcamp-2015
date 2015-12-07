@@ -23,8 +23,8 @@ fspace Currents {
 }
 
 fspace Voltages {
-  _0 : float,
   _1 : float,
+  _2 : float,
 }
 
 fspace Node {
@@ -35,8 +35,8 @@ fspace Node {
 }
 
 fspace Wire(rn : region(Node)) {
-  in_ptr      : ptr(Node, rn),
-  out_ptr     : ptr(Node, rn),
+  in_node     : ptr(Node, rn),
+  out_node    : ptr(Node, rn),
   inductance  : float,
   resistance  : float,
   capacitance : float,
@@ -66,14 +66,14 @@ task toplevel()
 
   var colors = ispace(int1d, conf.num_pieces)
   var pn_equal = partition(equal, rn, colors)
-  var pw_outgoing = preimage(rw, pn_equal, rw.in_ptr)
-  var pw_incoming = preimage(rw, pn_equal, rw.out_ptr)
+  var pw_outgoing = preimage(rw, pn_equal, rw.in_node)
+  var pw_incoming = preimage(rw, pn_equal, rw.out_node)
   var pw_crossing_out = pw_outgoing - pw_incoming
   var pw_crossing_in = pw_incoming - pw_outgoing
   var pw_crossing = pw_crossing_out | pw_crossing_in
-  var pn_shared = pn_equal & (image(rn, pw_crossing, rw.in_ptr) | image(rn, pw_crossing, rw.out_ptr))
+  var pn_shared = pn_equal & (image(rn, pw_crossing, rw.in_node) | image(rn, pw_crossing, rw.out_ptr))
   var pn_private = pn_equal - pn_shared
-  var pn_ghost = (image(rn, pw_crossing_out, rw.out_ptr) | image(rn, pw_crossing_in, rw.in_ptr)) - pn_shared
+  var pn_ghost = (image(rn, pw_crossing_out, rw.out_ptr) | image(rn, pw_crossing_in, rw.in_node)) - pn_shared
 
   helper.dump_graph(conf, rn, rw)
 end
