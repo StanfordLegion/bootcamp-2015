@@ -46,6 +46,7 @@ fspace Wire(rn : region(Node)) {
 
 local CktConfig = require("session1/circuit_config")
 local helper = require("session1/circuit_helper")
+local validator = require("session2/circuit_partition_validator")
 
 task toplevel()
   var conf : CktConfig
@@ -75,6 +76,12 @@ task toplevel()
   var pn_private = pn_equal - pn_shared
   var pn_ghost = (image(rn, pw_crossing_out, rw.out_node) | image(rn, pw_crossing_in, rw.in_node)) - pn_shared
 
-  helper.dump_graph(conf, rn, rw)
+  var pw = pw_outgoing
+
+  --helper.dump_graph(conf, rn, rw)
+
+  c.printf("Validating your circuit partitions...\n")
+  validator.validate_partitions(conf, rn, rw,
+                                pn_private, pn_shared, pn_ghost, pw)
 end
 regentlib.start(toplevel)

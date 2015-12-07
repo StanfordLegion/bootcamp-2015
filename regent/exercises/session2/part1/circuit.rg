@@ -32,6 +32,7 @@ fspace Wire(rn : region(Node)) {
 
 local CktConfig = require("session1/circuit_config")
 local helper = require("session1/circuit_helper")
+local validator = require("session2/circuit_partition_validator")
 
 task toplevel()
   var conf : CktConfig
@@ -62,6 +63,13 @@ task toplevel()
   -- TODO: Compute the partition of wires.
   var pw
 
-  helper.dump_graph(conf, rn, rw)
+  -- Put back this call if you want to print out the graph.
+  -- helper.dump_graph(conf, rn, rw)
+
+  -- Your partitions should pass this validation.
+  -- For each node and wire, validator checks if it belongs to a right region.
+  c.printf("Validating your circuit partitions...\n")
+  validator.validate_partitions(conf, rn, rw,
+                                pn_private, pn_shared, pn_ghost, pw)
 end
 regentlib.start(toplevel)

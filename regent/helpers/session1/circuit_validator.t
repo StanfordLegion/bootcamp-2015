@@ -54,7 +54,6 @@ do
                        wire_currents, wire_voltages,
                        num_nodes, num_wires)
   var passed = true
-  __forbid(__vectorize)
   for n in rn do
     var p = __raw(n).value
     if not (cmath.fabs(n.charge - node_charge[p]) < 1e-5) then
@@ -69,7 +68,6 @@ do
   end
   for i = 0, 3 do
     var offset = num_wires * i
-    __forbid(__vectorize)
     for w in rw do
       var current : float
       if i == 0 then current = w.current._0
@@ -86,7 +84,6 @@ do
   end
   for i = 1, 3 do
     var offset = num_wires * (i - 1)
-    __forbid(__vectorize)
     for w in rw do
       var voltage : float
       if i == 1 then voltage = w.voltage._1
