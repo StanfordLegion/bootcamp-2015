@@ -52,5 +52,3 @@ We are giving you a helper function `helper.calculate_gflops` which takes the ex
 Analyze your task implementations and calculate the total GFLOPS.
 
 ## Syntax Guide
-
-Like in the previous part, we include a syntax guide to teach you the syntax required in this part. The following snippets will help you define tasks and enumerates elements in regions.
