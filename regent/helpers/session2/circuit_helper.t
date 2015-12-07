@@ -19,7 +19,7 @@ local std = terralib.includec("stdlib.h")
 rawset(_G, "drand48", std.drand48)
 rawset(_G, "srand48", std.srand48)
 
-local CktConfig = require("session2/circuit_config")
+local CktConfig = require("session1/circuit_config")
 
 local helper = {}
 

@@ -32,7 +32,7 @@ fspace Wire(rn : region(Node)) {
   voltage     : Voltages,
 }
 
-local CktConfig = require("session2/circuit_config")
+local CktConfig = require("session1/circuit_config")
 local helper = require("session2/circuit_helper")
 local validator = require("session1/circuit_validator")
 
