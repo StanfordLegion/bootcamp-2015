@@ -100,7 +100,7 @@ task toplevel()
     update_voltages(rn)
   end
 
-  -- Force all previous tasks to complete and measure the elapsed time.
+  -- Wait for all previous tasks to complete and measure the elapsed time.
   helper.wait_for(rn, rw)
   var ts_end = helper.timestamp()
   c.printf("Simulation complete\n")
