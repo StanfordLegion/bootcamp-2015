@@ -211,4 +211,27 @@ terra helper.read_solution(filename : &int8,
   offset = offset + wires_size * 2
 end
 
+task helper.initialize_pointers(rpn : region(Node),
+                                rsn : region(Node),
+                                rgn : region(Node),
+                                rw  : region(Wire(rpn, rsn, rgn)))
+where reads(rpn, rsn, rgn),
+      reads writes(rw.{in_node, out_node})
+do
+  for w in rw do
+    w.in_node = dynamic_cast(ptr(Node, rpn, rsn), w.in_node)
+    if isnull(w.in_node) then
+      c.printf("validation error: wire %d's in_node is not an owned node\n",
+        __raw(w), __raw(w.in_node))
+      regentlib.assert(false, "pointer validation failed")
+    end
+    w.out_node = dynamic_cast(ptr(Node, rpn, rsn, rgn), w.out_node)
+    if isnull(w.out_node) then
+      c.printf("validation error: wire %d's out_node is invalid: %d\n",
+        __raw(w), __raw(w.out_node))
+      regentlib.assert(false, "pointer validation failed")
+    end
+  end
+end
+
 return helper

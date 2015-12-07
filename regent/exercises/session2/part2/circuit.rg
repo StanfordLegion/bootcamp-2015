@@ -158,6 +158,9 @@ task toplevel()
   var pw = pw_outgoing
 
   helper.dump_graph(conf, rn, rw)
+  for i = 0, conf.num_pieces do
+    helper.initialize_pointers(pn_private[i], pn_shared[i], pn_ghost[i], pw[i])
+  end
 
   c.printf("Starting main simulation loop\n")
   var ts_start = helper.timestamp()

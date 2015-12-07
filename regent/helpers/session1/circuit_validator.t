@@ -22,7 +22,7 @@ local CktConfig = require("session1/circuit_config")
 local helper = require("session1/circuit_helper")
 local cmath = terralib.includec("math.h")
 
-local EPS = 1e-3
+local EPS = 1e-4
 
 local terra compare_value(type     : &int8,
                           computed : float,
