@@ -62,7 +62,6 @@ task toplevel()
   -- syntax guide for the syntax.)
 
   c.printf("Generating random circuit...\n")
-
   helper.generate_random_circuit(rn, rw, conf)
 
   -- Once you've filled in the code above, this will print out the graph.
