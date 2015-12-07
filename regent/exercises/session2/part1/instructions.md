@@ -22,8 +22,16 @@ Now, if the application required no communication between tasks, this might be t
 <table style="border: 0px;">
 <tr style="border: 0px;">
 <td style="border: 0px; padding: 10px;">
+Preimage (Partition of Wires)
+<img src="/images/circuit/partition2_wires.png" width="250">
+</td>
+<td style="border: 0px; padding: 10px;">
+Image (Partition of Nodes)
+<img src="/images/circuit/partition3_image.png" width="250">
+</td>
+<td style="border: 0px; padding: 10px;">
 Crossing (Partition of Nodes)
-<img src="/images/circuit/partition2_crossing.png" width="250">
+<img src="/images/circuit/partition4_crossing.png" width="250">
 </td>
 </tr>
 </table>
@@ -34,15 +42,15 @@ With this in mind, we can now compute three new partitions (which will actually 
 <tr style="border: 0px;">
 <td style="border: 0px; padding: 10px;">
 Private (Partition of Nodes)
-<img src="/images/circuit/partition3_private.png" width="250">
+<img src="/images/circuit/partition5_private.png" width="250">
 </td>
 <td style="border: 0px; padding: 10px;">
 Shared (Partition of Nodes)
-<img src="/images/circuit/partition4_shared.png" width="250">
+<img src="/images/circuit/partition6_shared.png" width="250">
 </td>
 <td style="border: 0px; padding: 10px;">
 Ghost (Partition of Nodes)
-<img src="/images/circuit/partition5_ghost.png" width="250">
+<img src="/images/circuit/partition7_ghost.png" width="250">
 </td>
 </tr>
 </table>
@@ -55,7 +63,7 @@ Finally, we can construct a partition of wires based on the initial partition of
 <tr style="border: 0px;">
 <td style="border: 0px; padding: 10px;">
 Partition of Wires
-<img src="/images/circuit/partition6_wires.png" width="250">
+<img src="/images/circuit/partition2_wires.png" width="250">
 </td>
 </tr>
 </table>

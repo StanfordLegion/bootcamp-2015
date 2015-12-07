@@ -8,15 +8,15 @@ First, the field space declarations will need to change to accomodate the new pa
 <tr style="border: 0px;">
 <td style="border: 0px; padding: 10px;">
 Private (Partition of Nodes)
-<img src="/images/circuit/partition3_private.png" width="250">
+<img src="/images/circuit/partition5_private.png" width="250">
 </td>
 <td style="border: 0px; padding: 10px;">
 Shared (Partition of Nodes)
-<img src="/images/circuit/partition4_shared.png" width="250">
+<img src="/images/circuit/partition6_shared.png" width="250">
 </td>
 <td style="border: 0px; padding: 10px;">
 Ghost (Partition of Nodes)
-<img src="/images/circuit/partition5_ghost.png" width="250">
+<img src="/images/circuit/partition7_ghost.png" width="250">
 </td>
 </tr>
 </table>
