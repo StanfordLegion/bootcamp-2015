@@ -50,12 +50,17 @@ task toplevel()
   c.printf("Generating random circuit...\n")
   helper.generate_random_circuit(rn, rw, conf)
 
+  -- This initial partition of nodes should be the basis of your partitions.
   var colors = ispace(int1d, conf.num_pieces)
   var pn_equal = partition(equal, rn, colors)
 
+  -- TODO: Compute the following partitions of nodes.
   var pn_private
   var pn_shared
   var pn_ghost
+
+  -- TODO: Compute the partition of wires.
+  var pw
 
   helper.dump_graph(conf, rn, rw)
 end
