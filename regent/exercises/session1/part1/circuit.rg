@@ -61,7 +61,7 @@ task toplevel()
   -- the 'new' operator to allocate the elements. (Hint: Refer to the
   -- syntax guide for the syntax.)
 
-  c.printf("Generating random circuit...\n")
+  c.printf("Generating a random circuit...\n")
   helper.generate_random_circuit(rn, rw, conf)
 
   -- Once you've filled in the code above, this will print out the graph.

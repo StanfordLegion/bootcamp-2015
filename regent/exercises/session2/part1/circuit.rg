@@ -9,8 +9,8 @@ fspace Currents {
 }
 
 fspace Voltages {
-  _0 : float,
   _1 : float,
+  _2 : float,
 }
 
 fspace Node {
@@ -21,8 +21,8 @@ fspace Node {
 }
 
 fspace Wire(rn : region(Node)) {
-  in_ptr      : ptr(Node, rn),
-  out_ptr     : ptr(Node, rn),
+  in_node     : ptr(Node, rn),
+  out_node    : ptr(Node, rn),
   inductance  : float,
   resistance  : float,
   capacitance : float,
@@ -47,7 +47,7 @@ task toplevel()
   new(ptr(Node, rn), num_circuit_nodes)
   new(ptr(Wire(rn), rw), num_circuit_wires)
 
-  c.printf("Generating random circuit...\n")
+  c.printf("Generating a random circuit...\n")
   helper.generate_random_circuit(rn, rw, conf)
 
   -- This initial partition of nodes should be the basis of other partitions.
