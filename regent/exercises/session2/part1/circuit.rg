@@ -50,7 +50,7 @@ task toplevel()
   c.printf("Generating random circuit...\n")
   helper.generate_random_circuit(rn, rw, conf)
 
-  -- This initial partition of nodes should be the basis of your partitions.
+  -- This initial partition of nodes should be the basis of other partitions.
   var colors = ispace(int1d, conf.num_pieces)
   var pn_equal = partition(equal, rn, colors)
 
