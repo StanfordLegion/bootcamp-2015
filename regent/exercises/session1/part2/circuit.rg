@@ -1,17 +1,3 @@
--- Copyright 2015 Stanford University
---
--- Licensed under the Apache License, Version 2.0 (the "License");
--- you may not use this file except in compliance with the License.
--- You may obtain a copy of the License at
---
---     http://www.apache.org/licenses/LICENSE-2.0
---
--- Unless required by applicable law or agreed to in writing, software
--- distributed under the License is distributed on an "AS IS" BASIS,
--- WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
--- See the License for the specific language governing permissions and
--- limitations under the License.
-
 import "regent"
 
 local c = regentlib.c
@@ -48,35 +34,36 @@ local CktConfig = require("session1/circuit_config")
 local helper = require("session1/circuit_helper")
 local validator = require("session1/circuit_validator")
 
--- The length of a timestep is 0.1 us
+-- The length of a timestep is 0.1 us.
 local dT = 1e-7
 
--- FIXME: Implement task 'calculate_new_currents'.
-task calculate_new_currents(conf : CktConfig
-                            -- FIXME: Declare parameters as you need
-                           )
--- FIXME: Declare right privileges
+-- TODO: Implement task 'calculate_new_currents'.
+task calculate_new_currents(conf : CktConfig)
+                            -- TODO: Declare more parameters as needed.
+-- TODO: Declare privileges.
 
+  -- TODO: Starting with the following code, implement the body of the task.
   --for w in rw do
   --  for j = 0, conf.steps do
   --  end
   --end
 end
 
--- FIXME: Implement task 'distribute_charge'.
-task distribute_charge( -- FIXME: Declare parameters as you need
-                      )
--- FIXME: Declare right privileges
+-- TODO: Implement task 'distribute_charge'.
+task distribute_charge() -- TODO: Declare parameters as needed.
+-- TODO: Declare privileges.
 
+  -- TODO: Starting with the following code, implement the body of the task.
   --for w in rw do
   --end
 end
 
--- The 'update_voltages' task accumulates the contribution of
--- charge to voltage and then applies leakage
+-- The 'update_voltages' task accumulates the contribution of charge
+-- to voltage and then applies leakage.
 task update_voltages(rn : region(Node))
-where reads(rn.{capacitance, leakage}),
-      reads writes(rn.{voltage, charge})
+where
+  reads(rn.{capacitance, leakage}),
+  reads writes(rn.{voltage, charge})
 do
   for n in rn do
     var voltage = n.voltage + n.charge / n.capacitance
@@ -91,6 +78,7 @@ task toplevel()
   conf:initialize_from_command()
   conf:show()
 
+  -- This is our solution for Session 1 Part 1. Does it match what you wrote?
   var num_circuit_nodes = conf.num_pieces * conf.nodes_per_piece
   var num_circuit_wires = conf.num_pieces * conf.wires_per_piece
 
@@ -107,20 +95,20 @@ task toplevel()
   c.printf("Starting main simulation loop\n")
   var ts_start = helper.timestamp()
 
-  -- FIXME: Complete the simulation loop.
+  -- TODO: Complete the simulation loop by calling the other two tasks.
   for j = 0, conf.num_loops do
     update_voltages(rn)
   end
 
-  -- Force all previous tasks to complete before continuing.
+  -- Force all previous tasks to complete and measure the elapsed time.
   helper.wait_for(rn, rw)
   var ts_end = helper.timestamp()
-  c.printf("simulation complete\n")
+  c.printf("Simulation complete\n")
 
   var sim_time = 1e-6 * (ts_end - ts_start)
   c.printf("ELAPSED TIME = %7.3f s\n", sim_time)
 
-  -- Bonus Point: Calculate FLOPS of your implementation.
+  -- Bonus: Calculate FLOPS of your implementation.
   var flops_cnc, flops_dc, flops_uv = 0, 0, 0
   var gflops =
     helper.calculate_gflops(sim_time, flops_cnc, flops_dc, flops_uv, conf)

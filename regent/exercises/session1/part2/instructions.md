@@ -45,7 +45,7 @@ The main task will invoke them in the above order for `conf.num_loops` times.
 
 Fill the for-loop given in the main task.
 
-## Bonus Point: Calculate FLOPS of your implementation.
+## Bonus: Calculate FLOPS of your implementation.
 
 We are giving you a helper function `helper.calculate_gflops` which takes the execution time and the flops per iteration of each of the three tasks, and computes the total FLOPS of the simulation.
 
