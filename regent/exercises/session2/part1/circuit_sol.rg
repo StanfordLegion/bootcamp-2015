@@ -44,8 +44,8 @@ fspace Wire(rn : region(Node)) {
   voltage     : Voltages,
 }
 
-local CktConfig = require("session2/circuit_config")
-local helper = require("session2/circuit_helper")
+local CktConfig = require("session1/circuit_config")
+local helper = require("session1/circuit_helper")
 
 task toplevel()
   var conf : CktConfig
@@ -71,9 +71,9 @@ task toplevel()
   var pw_crossing_out = pw_outgoing - pw_incoming
   var pw_crossing_in = pw_incoming - pw_outgoing
   var pw_crossing = pw_crossing_out | pw_crossing_in
-  var pn_shared = pn_equal & (image(rn, pw_crossing, rw.in_node) | image(rn, pw_crossing, rw.out_ptr))
+  var pn_shared = pn_equal & (image(rn, pw_crossing, rw.in_node) | image(rn, pw_crossing, rw.out_node))
   var pn_private = pn_equal - pn_shared
-  var pn_ghost = (image(rn, pw_crossing_out, rw.out_ptr) | image(rn, pw_crossing_in, rw.in_node)) - pn_shared
+  var pn_ghost = (image(rn, pw_crossing_out, rw.out_node) | image(rn, pw_crossing_in, rw.in_node)) - pn_shared
 
   helper.dump_graph(conf, rn, rw)
 end
