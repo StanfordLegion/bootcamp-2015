@@ -64,29 +64,29 @@ do
     c.printf("piece %d:\n", p)
     for n in rprivate do
       var node = __raw(n).value
-      var check = "O"
+      var check = "Y"
       if not (start_node_id <= node and node <= end_node_id and
               num_crossings[node] == 0)
       then
-        check = "X"
+        check = "N"
         valid = false
       end
       c.printf("  private node %d (%s)\n", __raw(n), check)
     end
     for n in rshared do
       var node = __raw(n).value
-      var check = "O"
+      var check = "Y"
       if not (start_node_id <= node and node <= end_node_id and
               num_crossings[node] > 0)
       then
-        check = "X"
+        check = "N"
         valid = false
       end
       c.printf("  shared node %d (%s)\n", __raw(n), check)
     end
     for n in rghost do
       var node = __raw(n).value
-      var check = "X"
+      var check = "N"
       var valid_ghost = false
 
       for wire = 0, num_wires do
@@ -96,7 +96,7 @@ do
         if (in_node == node and num_crossings[out_node] > 0) or
            (out_node == node and num_crossings[in_node] > 0)
         then
-          check = "O"
+          check = "Y"
           valid_ghost = true
           break
         end
@@ -108,9 +108,9 @@ do
 
     for w in rwprivate do
       var wire = __raw(w).value
-      var check = "O"
+      var check = "Y"
       if not (start_wire_id <= wire and wire <= end_wire_id) then
-        check = "X"
+        check = "N"
         valid = false
       end
 
@@ -118,11 +118,11 @@ do
       var out_node  = __raw(w.out_node).value
 
       if not (start_node_id <= in_node and in_node <= end_node_id) then
-        check = "X"
+        check = "N"
         valid = false
       end
       if not (0 <= out_node and out_node < num_nodes) then
-        check = "X"
+        check = "N"
         valid = false
       end
 

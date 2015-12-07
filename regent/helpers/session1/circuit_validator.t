@@ -28,10 +28,10 @@ local terra compare_value(type     : &int8,
                           computed : float,
                           expected : float)
   var diff = cmath.fabs(computed - expected)
-  var check = "X"
+  var check = "N"
   var passed = false
-  if diff <= EPS then check, passed = "O", true
-  elseif diff / computed <= EPS then check, passed = "O", true end
+  if diff <= EPS then check, passed = "Y", true
+  elseif diff / computed <= EPS then check, passed = "Y", true end
   c.printf("  [%s] computed: %.5g, expected: %.5g (%s)\n",
     type, computed, expected, check)
   return passed
