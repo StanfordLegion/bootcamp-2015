@@ -23,8 +23,8 @@ fspace Currents {
 }
 
 fspace Voltages {
-  _0 : float,
   _1 : float,
+  _2 : float,
 }
 
 fspace Node {
@@ -37,8 +37,8 @@ fspace Node {
 -- Note: Wire now takes three arguments: private, shared, and ghost
 -- nodes.
 fspace Wire(rpn : region(Node), rsn : region(Node), rgn : region(Node)) {
-  in_ptr      : ptr(Node, rpn, rsn, rgn),
-  out_ptr     : ptr(Node, rpn, rsn, rgn),
+  in_node      : ptr(Node, rpn, rsn, rgn),
+  out_node     : ptr(Node, rpn, rsn, rgn),
   inductance  : float,
   resistance  : float,
   capacitance : float,
@@ -60,7 +60,7 @@ task calculate_new_currents(steps : uint,
                             rw : region(Wire(rpn, rsn, rgn)))
 where
   reads(rpn.voltage, rsn.voltage, rgn.voltage,
-        rw.{in_ptr, out_ptr, inductance, resistance, capacitance}),
+        rw.{in_node, out_node, inductance, resistance, capacitance}),
   reads writes(rw.{current, voltage})
 do
   var recip_dt : float = 1.0 / dT
@@ -76,13 +76,13 @@ do
     temp_i[2] = w.current._2
     for i = 0, WIRE_SEGMENTS do old_i[i] = temp_i[i] end
 
-    temp_v[1] = w.voltage._0
-    temp_v[2] = w.voltage._1
+    temp_v[1] = w.voltage._1
+    temp_v[2] = w.voltage._2
     for i = 0, WIRE_SEGMENTS - 1 do old_v[i] = temp_v[i + 1] end
 
     -- Pin the outer voltages to the node voltages.
-    temp_v[0] = w.in_ptr.voltage
-    temp_v[WIRE_SEGMENTS] = w.out_ptr.voltage
+    temp_v[0] = w.in_node.voltage
+    temp_v[WIRE_SEGMENTS] = w.out_node.voltage
 
     -- Solve the RLC model iteratively.
     var inductance : float = w.inductance
@@ -107,8 +107,8 @@ do
     w.current._1 = temp_i[1]
     w.current._2 = temp_i[2]
 
-    w.voltage._0 = temp_v[1]
-    w.voltage._1 = temp_v[2]
+    w.voltage._1 = temp_v[1]
+    w.voltage._2 = temp_v[2]
   end
 end
 
@@ -117,14 +117,14 @@ task distribute_charge(rpn : region(Node),
                        rgn : region(Node),
                        rw : region(Wire(rpn, rsn, rgn)))
 where
-  reads(rw.{in_ptr, out_ptr, current._0, current._2}),
+  reads(rw.{in_node, out_node, current._0, current._2}),
   reduces +(rpn.charge, rsn.charge, rgn.charge)
 do
   for w in rw do
     var in_current = -dT * w.current._0
     var out_current = dT * w.current._2
-    w.in_ptr.charge += in_current
-    w.out_ptr.charge += out_current
+    w.in_node.charge += in_current
+    w.out_node.charge += out_current
   end
 end
 
@@ -155,19 +155,19 @@ task toplevel()
   new(ptr(Node, rn), num_circuit_nodes)
   new(ptr(Wire(wild, wild, wild), rw), num_circuit_wires)
 
-  c.printf("Generating random circuit...\n")
+  c.printf("Generating a random circuit...\n")
   helper.generate_random_circuit(rn, rw, conf)
 
   var colors = ispace(int1d, conf.num_pieces)
   var pn_equal = partition(equal, rn, colors)
-  var pw_outgoing = preimage(rw, pn_equal, rw.in_ptr)
-  var pw_incoming = preimage(rw, pn_equal, rw.out_ptr)
+  var pw_outgoing = preimage(rw, pn_equal, rw.in_node)
+  var pw_incoming = preimage(rw, pn_equal, rw.out_node)
   var pw_crossing_out = pw_outgoing - pw_incoming
   var pw_crossing_in = pw_incoming - pw_outgoing
   var pw_crossing = pw_crossing_out | pw_crossing_in
-  var pn_shared = pn_equal & (image(rn, pw_crossing, rw.in_ptr) | image(rn, pw_crossing, rw.out_ptr))
+  var pn_shared = pn_equal & (image(rn, pw_crossing, rw.in_node) | image(rn, pw_crossing, rw.out_node))
   var pn_private = pn_equal - pn_shared
-  var pn_ghost = (image(rn, pw_crossing_out, rw.out_ptr) | image(rn, pw_crossing_in, rw.in_ptr)) - pn_shared
+  var pn_ghost = (image(rn, pw_crossing_out, rw.out_node) | image(rn, pw_crossing_in, rw.in_node)) - pn_shared
 
   var pw = pw_outgoing
 
