@@ -54,9 +54,7 @@ local dT = 1e-7
 
 bishop
 
-task#calculate_new_currents,
-task#distribute_charge,
-task#update_voltages
+task#toplevel
 {
   target : processors[isa=x86];
 }
