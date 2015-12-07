@@ -156,7 +156,7 @@ task toplevel()
   -- Wait for all previous tasks to complete and measure the elapsed time.
   helper.wait_for(rn, rw)
   var ts_end = helper.timestamp()
-  c.printf("simulation complete\n")
+  c.printf("Simulation complete\n")
 
   var sim_time = 1e-6 * (ts_end - ts_start)
   c.printf("ELAPSED TIME = %7.3f s\n", sim_time)

@@ -116,14 +116,14 @@ end
 
 task update_voltages(rn : region(Node))
 where
-  reads(rn.{node_cap, leakage}),
+  reads(rn.{capacitance, leakage}),
   reads writes(rn.{voltage, charge})
 do
-  for node in rn do
-    var voltage = node.voltage + node.charge / node.node_cap
-    voltage = voltage * (1.0 - node.leakage)
-    node.voltage = voltage
-    node.charge = 0.0
+  for n in rn do
+    var voltage = n.voltage + n.charge / n.capacitance
+    voltage = voltage * (1.0 - n.leakage)
+    n.voltage = voltage
+    n.charge = 0.0
   end
 end
 

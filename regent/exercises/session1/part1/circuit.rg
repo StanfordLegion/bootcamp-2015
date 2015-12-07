@@ -49,7 +49,7 @@ task toplevel()
   conf:show()
 
   -- TODO: Create two logical regions for nodes and wires. The index
-  -- spaces should be large enough to hold the nodes and wires. Hint:
+  -- spaces should be large enough to hold the nodes and wires.
   -- The sizes can be computed from the following fields of conf:
   --   * conf.num_pieces (the number of pieces in the graph)
   --   * conf.nodes_per_piece (the number of nodes per piece)

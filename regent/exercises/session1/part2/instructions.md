@@ -6,7 +6,7 @@ Let's implement the rest of the circuit simulation. The simulation will solve so
  2. `distribute_charge`
  3. `update_voltages` (provided for your reference)
 
-Your goal for this exercise will be to implement the two remaining tasks and finish the simulation loop.
+Your goal for this exercise is to implement the two remaining tasks and finish the simulation loop.
 
 ## Task `calculate_new_currents`
 
@@ -27,13 +27,13 @@ $\large I_i^s = \big((V_{i+1}^s - V_i^s) - L \frac{I_i^s - I_i^0}{dT}\big)/R\qua
 $\large V_{i+1}^s = V_i^0 + \frac{I_i^s - I_{i+1}^s}{C}dT \quad \textrm{for}\quad 0 \le i \le 2$
 
 
-At each time step $s$, the difference in voltages induces currents on each segment and the induced currents accumulates to the voltage at each node. The task will repeatedly compute new currents and voltages for `conf.steps` times, and once all steps are done, it should store the final currents and voltages back to the region of wires.
+At each time step $s$, the difference in voltages induces currents on each segment and the induced current accumulates to the voltage at each node. The task repeatedly computes new currents and voltages for `conf.steps` times, and once all steps are done, it should store the final currents and voltages back to the region of wires.
 
 Implement the body of the task based on this description.
 
 ## Task `distribute_charge`
 
-This task adjusts the charge of `in_node` and `out_node` of each wire. Since the currents have flown from `in_node` to `out_node`, charges have been taken from the former and delivered to the latter. The contribution of the currents to the charge is formulated as this:
+This task adjusts the charge of `in_node` and `out_node` of each wire. Since the currents flowed from `in_node` to `out_node`, charges have been taken from the former and delivered to the latter. The contribution of the currents to the charge is formulated as:
 
 $\large \mathit{dCharge} = \mathit{I} \times \mathit{dT}$
 
