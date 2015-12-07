@@ -31,9 +31,8 @@ fspace Wire(rpn : region(Node), rsn : region(Node), rgn : region(Node)) {
   voltage     : Voltages,
 }
 
-local CktConfig = require("session1/circuit_config")
-local helper = require("session2/circuit_helper")
-local validator = require("session2/circuit_validator")
+local CktConfig = require("session3/circuit_config")
+local helper = require("session3/circuit_helper")
 
 local WS = 3
 local dT = 1e-7
@@ -173,9 +172,6 @@ task toplevel()
     helper.initialize_pointers(pn_private[i], pn_shared[i], pn_ghost[i], pw[i])
   end
 
-
-  --helper.dump_graph(conf, rn, rw)
-
   c.printf("Starting main simulation loop\n")
   var ts_start = helper.timestamp()
 
@@ -201,9 +197,6 @@ task toplevel()
   var gflops =
     helper.calculate_gflops(sim_time, WS * 6 + (WS - 1) * 4, 4, 4, conf)
   c.printf("GFLOPS = %7.3f GFLOPS\n", gflops)
-
-  c.printf("Validating simulation results...\n")
-  validator.validate_solution(rn, rw, conf)
 end
 bishoplib.register_bishop_mappers()
 regentlib.start(toplevel)
