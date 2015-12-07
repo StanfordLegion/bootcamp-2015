@@ -62,9 +62,7 @@ task toplevel()
   new(ptr(Wire(rn), rw), num_circuit_wires)
 
   c.printf("Generating random circuit...\n")
-
   helper.generate_random_circuit(rn, rw, conf)
-
   helper.dump_graph(conf, rn, rw)
 end
 regentlib.start(toplevel)
