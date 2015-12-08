@@ -30,6 +30,7 @@ fspace Node
 -- TODO: Add the following fields to the 'Wire' field space:
 --   * 'in_node' of pointer type to region(Node)
 --   * 'out_node' of pointer type to region(Node)
+--   * 'capacitance' of type float
 --   * 'inductance' of type float
 --   * 'resistance' of type float
 --   * 'current' of structure type 'Currents'
