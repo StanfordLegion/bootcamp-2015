@@ -40,7 +40,7 @@ local dT = 1e-7
 
 bishop
 
-task#toplevel
+task#update_voltages
 {
   target : processors[isa=x86];
 }

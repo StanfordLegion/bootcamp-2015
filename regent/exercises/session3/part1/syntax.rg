@@ -1,37 +1,32 @@
-__demand(__cuda) task T(...) ... -- Generates both x86 and CUDA variants for task T
-bishop ... end                   -- Starts a bishop mapper
-TE    { P : V; }                 -- Sets value V to property P of a task that matches with TE
-TE RE { P : V; }                 -- Sets value V to property P of a region that matches RE and whose task matches TE
---
+__demand(__cuda) task T ... -- Generates both x86 and CUDA variants for task T
+bishop ... end              -- Starts a bishop mapper
+TE    { P : V; }            -- Sets value V to property P of a task that matches with TE
+TE RE { P : V; }            -- Sets value V to property P of a region that matches RE and whose task matches TE
+
 -- Task Element (TE)
-task                             -- Matches with any task
-task#T                           -- Matches with task T
-task[P=$V]                       -- Matches with any task and binds the value of property P to variable $V
-task#T[P=$V]                     -- As above, but only matches with task T
+task                        -- Selects any tasks
+task#T                      -- Selects tasks named T
+task[isa=I]                 -- Selects tasks mapped to a processor that supports ISA I
+TE[target=$T]               -- Selects tasks that satisfy TE and then binds their target to $T
+TE[index=$P]                -- Selects tasks that satisfy TE and then binds their point in the launch domain to $P
 
 -- Region Element (RE)
-region                           -- Matches with any region
-region#P                         -- Matches with region passed by parameter P
+region                      -- Selects any regions
+region#P                    -- Selects regions named P in the signature
 
 -- Processor objects
-processors                       -- A list of processors in the whole system
-processors[isa=I]                -- Processors that supports ISA I
-processors[N]                    -- N-th processor in the list
-processors.size                  -- Size of the memory list
-processors[N].memories           -- A list of memories visible to the N-th processor
+processors                  -- A list of processors in the whole system
+processors[isa=I]           -- A list of processors that support ISA I (either x86 or cuda)
+processors[N]               -- The N-th processor in the list
+L.size                      -- The size of list L of processors
+P.memories                  -- A list of memories visible to processor P
 
 -- Memory objects
-memories                         -- A list of memories in the whole system
-memories[kind=K]                 -- memorys of kind K (sysmem, regmem, fbmem, zcmem, ...)
-memories[N]                      -- N-th memory in the list
-memories.size                    -- Size of the memory list
+memories                    -- A list of memories in the whole system
+memories[kind=K]            -- A list of memories of kind K (sysmem, regmem, fbmem, or zcmem)
+memories[N]                 -- The N-th memory in the list
+L.size                      -- The size of list L of memories
 
--- Supported ISAs
-processors[isa=x86]
-processors[isa=cuda]
-
--- Supported memory kinds
-memories[kind=sysmem]             -- System memories
-memories[kind=regmem]             -- RDMA memories
-memories[kind=fbmem]              -- GPU framebuffer memories
-memories[kind=zcmem]              -- GPU zero-copy memories
+-- Expressions for list indices
+$P                          -- Variable $P bound to a point
+E1 + E2, E1 - E2, E1 * E2, E1 / E2, E1 % E2 -- Usual integer arithmetic expressions
