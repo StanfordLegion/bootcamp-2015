@@ -36,7 +36,7 @@ local CktConfig = require("session1/circuit_config")
 local helper = require("session2/circuit_helper")
 local validator = require("session2/circuit_validator")
 
-local WIRE_SEGMENTS = 3
+local WS = 3
 local dT = 1e-7
 
 -- TODO: Change this task to take three regions of nodes (private,
@@ -52,23 +52,23 @@ do
   var recip_dt : float = 1.0 / dT
   __demand(__vectorize)
   for w in rw do
-    var temp_v : float[WIRE_SEGMENTS + 1]
-    var temp_i : float[WIRE_SEGMENTS]
-    var old_i : float[WIRE_SEGMENTS]
-    var old_v : float[WIRE_SEGMENTS - 1]
+    var temp_v : float[WS + 1]
+    var temp_i : float[WS]
+    var old_i : float[WS]
+    var old_v : float[WS - 1]
 
     temp_i[0] = w.current._0
     temp_i[1] = w.current._1
     temp_i[2] = w.current._2
-    for i = 0, WIRE_SEGMENTS do old_i[i] = temp_i[i] end
+    for i = 0, WS do old_i[i] = temp_i[i] end
 
     temp_v[1] = w.voltage._1
     temp_v[2] = w.voltage._2
-    for i = 0, WIRE_SEGMENTS - 1 do old_v[i] = temp_v[i + 1] end
+    for i = 0, WS - 1 do old_v[i] = temp_v[i + 1] end
 
     -- Pin the outer voltages to the node voltages.
     temp_v[0] = w.in_node.voltage
-    temp_v[WIRE_SEGMENTS] = w.out_node.voltage
+    temp_v[WS] = w.out_node.voltage
 
     -- Solve the RLC model iteratively.
     var inductance : float = w.inductance
@@ -78,12 +78,12 @@ do
       -- First, figure out the new current from the voltage differential
       -- and our inductance:
       -- dV = R*I + L*I' ==> I = (dV - L*I')/R
-      for i = 0, WIRE_SEGMENTS do
+      for i = 0, WS do
         temp_i[i] = ((temp_v[i + 1] - temp_v[i]) -
                      (inductance * (temp_i[i] - old_i[i]) * recip_dt)) * recip_resistance
       end
       -- Now update the inter-node voltages.
-      for i = 0, WIRE_SEGMENTS - 1 do
+      for i = 0, WS - 1 do
         temp_v[i + 1] = old_v[i] + dT * (temp_i[i] - temp_i[i + 1]) * recip_capacitance
       end
     end
