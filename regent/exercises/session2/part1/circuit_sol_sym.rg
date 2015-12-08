@@ -67,11 +67,16 @@ task toplevel()
 
   var colors = ispace(int1d, conf.num_pieces)
   var pn_equal = partition(equal, rn, colors)
-  var pw = preimage(rw, pn_equal, rw.in_node)
-  var pn_extrefs = image(rn, preimage(rw, pn_equal, rw.out_node) - pw, rw.out_node)
-  var pn_private = pn_equal - pn_extrefs
-  var pn_shared = pn_equal & pn_extrefs
-  var pn_ghost = image(rn, pw, rw.out_node) - pn_equal
+  var pw_outgoing = preimage(rw, pn_equal, rw.in_node)
+  var pw_incoming = preimage(rw, pn_equal, rw.out_node)
+  var pw_crossing_out = pw_outgoing - pw_incoming
+  var pw_crossing_in = pw_incoming - pw_outgoing
+  var pw_crossing = pw_crossing_out | pw_crossing_in
+  var pn_shared = pn_equal & (image(rn, pw_crossing, rw.in_node) | image(rn, pw_crossing, rw.out_node))
+  var pn_private = pn_equal - pn_shared
+  var pn_ghost = (image(rn, pw_crossing_out, rw.out_node) | image(rn, pw_crossing_in, rw.in_node)) - pn_shared
+
+  var pw = pw_outgoing
 
   --helper.dump_graph(conf, rn, rw)
 
