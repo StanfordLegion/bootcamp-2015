@@ -49,11 +49,13 @@ task#update_voltages
 --       You might also want to try solving the bonus problem above.
 task
 {
+  target : ;
 }
 
 -- TODO: Write mapping rules that map regions of the three simulation tasks to a zero-copy memory.
 task region
 {
+  target : ;
 }
 
 end
