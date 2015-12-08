@@ -28,5 +28,5 @@ memories[N]                 -- The N-th memory in the list
 L.size                      -- The size of list L of memories
 
 -- Expressions for list indices
-$P                          -- Variable $P bound to a point
+$P[0]                       -- The first coordinate of point $P
 E1 + E2, E1 - E2, E1 * E2, E1 / E2, E1 % E2 -- Usual integer arithmetic expressions

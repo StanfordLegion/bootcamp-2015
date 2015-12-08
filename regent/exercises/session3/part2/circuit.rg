@@ -43,7 +43,7 @@ task#calculate_new_currents[index=$p],
 task#distribute_charge[index=$p],
 task#update_voltages[index=$p]
 {
-  target : processors[isa=x86][$p % processors[isa=x86].size];
+  target : processors[isa=x86][$p[0] % processors[isa=x86].size];
 }
 
 task[isa=x86 and target=$proc] region
