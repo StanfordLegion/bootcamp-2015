@@ -22,9 +22,9 @@ $\hskip{2.5em}V_0\hskip{10em}V_1\hskip{11em}V_2\hskip{10em}V_3$
 
 On this topology of wire segments, the RLC model you are going to implement is described by the following equation:
 
-$\large I_i^s = \big((V_{i+1}^{s-1} - V_i^{s-1}) - L \frac{I_i^{s-1} - I_i^0}{dT}\big)/R\quad \textrm{for}\quad 0 \le i \le 3$
+$\large I_i^s = \big((V_{i+1}^{s-1} - V_i^{s-1}) - L \frac{I_i^{s-1} - I_i^0}{dT}\big)/R\quad \textrm{for}\quad 0 \le i < 3$
 
-$\large V_{i+1}^s = V_i^0 + \frac{I_i^s - I_{i+1}^s}{C}dT \quad \textrm{for}\quad 0 \le i \le 2$
+$\large V_{i+1}^s = V_i^0 + \frac{I_i^s - I_{i+1}^s}{C}dT \quad \textrm{for}\quad 0 \le i < 2$
 
 
 At each time step $s$, the difference in voltages induces currents on each segment and the induced current accumulates to the voltage at each node. The task repeatedly computes new currents and voltages for `conf.steps` times, and once all steps are done, it should store the final currents and voltages back to the region of wires.
