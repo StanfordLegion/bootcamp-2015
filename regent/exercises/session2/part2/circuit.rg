@@ -152,8 +152,6 @@ task toplevel()
   var pn_shared = pn_equal & pn_extrefs
   var pn_ghost = image(rn, pw, rw.out_node) - pn_equal
 
-  var pw = pw_outgoing
-
   helper.dump_graph(conf, rn, rw)
   for i = 0, conf.num_pieces do
     helper.initialize_pointers(pn_private[i], pn_shared[i], pn_ghost[i], pw[i])
