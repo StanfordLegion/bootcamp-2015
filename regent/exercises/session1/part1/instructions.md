@@ -1,5 +1,7 @@
 # Session 1 Part 1
 
+This notebook is interactive, and contains both code and text. To run a piece of code, click on the box, and then hit Shift-Enter. To edit a piece of text, just double click.
+
 In these exercises, we're going to walk through the creation of a simple Regent application: a circuit simulation on an unstructured graph. We'll describe the differential equations we're solving in the next part of the exercise. First, let's look at the data structures we're going to be using in our simulation.
 
 In Regent, data structures are stored in *regions*. Regions are like arrays in other languages: they contain elements indexed by keys, and each element stores a set of fields. We call the set of keys the *index space* and the set of fields the *field space*. A region is just the cross product of these two spaces.
