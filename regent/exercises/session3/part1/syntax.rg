@@ -1,7 +1,7 @@
 __demand(__cuda) task T ... -- Generates both x86 and CUDA variants for task T
 bishop ... end              -- Starts a bishop mapper
-TE    { P : V; }            -- Sets value V to property P of a task that matches with TE
-TE RE { P : V; }            -- Sets value V to property P of a region that matches RE and whose task matches TE
+TE    { target : V; }       -- Sets value V as the target of a task that matches TE
+TE RE { target : V; }       -- Sets value V as the target of a region that matches RE and whose task matches TE
 
 -- Task Element (TE)
 task                        -- Selects any tasks

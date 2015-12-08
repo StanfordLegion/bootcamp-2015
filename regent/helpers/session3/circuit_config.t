@@ -30,12 +30,12 @@ struct CktConfig {
 
 terra CktConfig:initialize_from_command()
   self.num_loops = 5
-  self.num_pieces = 40
+  self.num_pieces = 128
   self.nodes_per_piece = 2500
   self.wires_per_piece = 10000
   self.pct_wire_in_piece = 70
   self.random_seed = 52413
-  self.steps = 10000
+  self.steps = 100000
 
   var args = c.legion_runtime_get_input_args()
   var i = 0

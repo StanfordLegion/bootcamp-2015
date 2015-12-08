@@ -40,20 +40,24 @@ local dT = 1e-7
 
 bishop
 
-task#update_voltages
+task#calculate_new_currents[index=$p]
 {
-  target : processors[isa=x86];
+  target : processors[isa=cuda];
 }
 
--- TODO: Write mapping rules that map the three simulation tasks to GPUs.
---       You might also want to try solving the bonus problem above.
-task
+task#distribute_charge[index=$p]
 {
+  target : processors[isa=cuda][(2 * $p[0]) % processors[isa=cuda].size];
 }
 
--- TODO: Write mapping rules that map regions of the three simulation tasks to a zero-copy memory.
-task region
+task#update_voltages[index=$p]
 {
+  target : processors[isa=cuda][(2 * $p[0] + 1) % processors[isa=cuda].size];
+}
+
+task[isa=cuda][target=$proc] region
+{
+  target : $proc.memories[kind=zcmem];
 }
 
 end
@@ -168,11 +172,16 @@ task toplevel()
 
   var colors = ispace(int1d, conf.num_pieces)
   var pn_equal = partition(equal, rn, colors)
-  var pw = preimage(rw, pn_equal, rw.in_node)
-  var pn_extrefs = image(rn, preimage(rw, pn_equal, rw.out_node) - pw, rw.out_node)
-  var pn_private = pn_equal - pn_extrefs
-  var pn_shared = pn_equal & pn_extrefs
-  var pn_ghost = image(rn, pw, rw.out_node) - pn_equal
+  var pw_outgoing = preimage(rw, pn_equal, rw.in_node)
+  var pw_incoming = preimage(rw, pn_equal, rw.out_node)
+  var pw_crossing_out = pw_outgoing - pw_incoming
+  var pw_crossing_in = pw_incoming - pw_outgoing
+  var pw_crossing = pw_crossing_out | pw_crossing_in
+  var pn_shared = pn_equal & (image(rn, pw_crossing, rw.in_node) | image(rn, pw_crossing, rw.out_node))
+  var pn_private = pn_equal - pn_shared
+  var pn_ghost = (image(rn, pw_crossing_out, rw.out_node) | image(rn, pw_crossing_in, rw.in_node)) - pn_shared
+
+  var pw = pw_outgoing
 
   __demand(__parallel)
   for i = 0, conf.num_pieces do

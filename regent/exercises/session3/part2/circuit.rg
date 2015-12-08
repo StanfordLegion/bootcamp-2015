@@ -174,6 +174,8 @@ task toplevel()
     helper.initialize_pointers(pn_private[i], pn_shared[i], pn_ghost[i], pw[i])
   end
 
+  helper.wait_for(rn, rw)
+
   c.printf("Starting main simulation loop\n")
   var ts_start = helper.timestamp()
 

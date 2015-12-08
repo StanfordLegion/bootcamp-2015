@@ -6,7 +6,7 @@ The task of this exercise is to write some mapping rules to map the three simula
 
 - Mapping rules that map tasks `calculate_new_currents`, `distribute_charges`, and `update_voltages` to GPUs (i.e. processors that support CUDA ISA)
 - Mapping rule(s) that map regions of these tasks to a zero-copy memory that is visible to the processor that the tasks have been mapped to.
-- As a bonus point, mapping rules that map task `distribute_charges` to even numbered GPUs and task `update_voltages` to odd numbered GPUs.
+- As a bonus point, mapping rules that map task `distribute_charges` to even numbered GPUs and task `update_voltages` to odd numbered GPUs (you can assume that there are even number of GPUs).
 
 With all your mapping rules written correctly, you should see the solution passes validation.
 
