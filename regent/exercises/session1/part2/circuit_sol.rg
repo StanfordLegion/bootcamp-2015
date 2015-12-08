@@ -80,7 +80,7 @@ do
     var L : float = w.inductance
     var rR : float = 1.0 / w.resistance
     var rC : float = 1.0 / w.capacitance
-    for j = 0, steps do
+    for s = 1, steps + 1 do
       -- first, figure out the new current from the voltage differential
       -- and our inductance:
       -- dV = R*I + L*I' ==> I = (dV - L*I')/R

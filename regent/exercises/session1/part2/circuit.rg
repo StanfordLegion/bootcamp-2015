@@ -44,7 +44,7 @@ task calculate_new_currents(conf : CktConfig)
 
   -- TODO: Starting with the following code, implement the body of the task.
   --for w in rw do
-  --  for j = 0, conf.steps do
+  --  for s = 1, conf.steps + 1 do
   --  end
   --end
 end
