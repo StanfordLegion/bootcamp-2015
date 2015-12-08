@@ -1,6 +1,6 @@
 # Session 1 Part 1
 
-This notebook is interactive, and contains both code and text. To run a piece of code, click on the box, and then hit Shift-Enter. To edit a piece of text, just double click.
+This notebook is interactive, and contains both code and text. To run a piece of code, click on the box, and then hit Ctrl-Enter. To edit a piece of text, just double click.
 
 In these exercises, we're going to walk through the creation of a simple Regent application: a circuit simulation on an unstructured graph. We'll describe the differential equations we're solving in the next part of the exercise. First, let's look at the data structures we're going to be using in our simulation.
 
