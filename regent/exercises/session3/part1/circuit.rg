@@ -38,7 +38,7 @@ local validator = require("session2/circuit_validator")
 local WS = 3
 local dT = 1e-7
 
-bishop
+mapper
 
 task#update_voltages
 {

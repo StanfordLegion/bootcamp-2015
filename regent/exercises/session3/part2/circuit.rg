@@ -37,7 +37,7 @@ local helper = require("session3/circuit_helper")
 local WS = 3
 local dT = 1e-7
 
-bishop
+mapper
 
 task#calculate_new_currents[index=$p],
 task#distribute_charge[index=$p],
