@@ -49,7 +49,7 @@ where
         rw.{in_node, out_node, inductance, resistance, capacitance}),
   reads writes(rw.{current, voltage})
 do
-  var recip_dt : float = 1.0 / dT
+  var rdT : float = 1.0 / dT
   __demand(__vectorize)
   for w in rw do
     var temp_v : float[WS + 1]
@@ -71,20 +71,20 @@ do
     temp_v[WS] = w.out_node.voltage
 
     -- Solve the RLC model iteratively.
-    var inductance : float = w.inductance
-    var recip_resistance : float = 1.0 / w.resistance
-    var recip_capacitance : float = 1.0 / w.capacitance
-    for j = 0, steps do
+    var L : float = w.inductance
+    var rR : float = 1.0 / w.resistance
+    var rC : float = 1.0 / w.capacitance
+    for s = 1, steps + 1 do
       -- First, figure out the new current from the voltage differential
       -- and our inductance:
       -- dV = R*I + L*I' ==> I = (dV - L*I')/R
       for i = 0, WS do
         temp_i[i] = ((temp_v[i + 1] - temp_v[i]) -
-                     (inductance * (temp_i[i] - old_i[i]) * recip_dt)) * recip_resistance
+                     (L * (temp_i[i] - old_i[i]) * rdT)) * rR
       end
       -- Now update the inter-node voltages.
       for i = 0, WS - 1 do
-        temp_v[i + 1] = old_v[i] + dT * (temp_i[i] - temp_i[i + 1]) * recip_capacitance
+        temp_v[i + 1] = old_v[i] + dT * (temp_i[i] - temp_i[i + 1]) * rC
       end
     end
 

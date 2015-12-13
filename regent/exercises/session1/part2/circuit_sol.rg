@@ -54,9 +54,10 @@ local dT = 1e-7
 task calculate_new_currents(steps : uint,
                             rn : region(Node),
                             rw : region(Wire(rn)))
-where reads(rn.voltage,
-            rw.{in_node, out_node, inductance, resistance, capacitance}),
-      reads writes(rw.{current, voltage})
+where
+  reads(rn.voltage,
+        rw.{in_node, out_node, inductance, resistance, capacitance}),
+  reads writes(rw.{current, voltage})
 do
   var rdT : float = 1.0 / dT
   __demand(__vectorize)
@@ -72,23 +73,23 @@ do
     temp_v[1] = w.voltage._1 temp_v[2] = w.voltage._2
     for i = 0, WS - 1 do old_v[i] = temp_v[i + 1] end
 
-    -- Pin the outer voltages to the node voltages
+    -- Pin the outer voltages to the node voltages.
     temp_v[0] = w.in_node.voltage
     temp_v[WS] = w.out_node.voltage
 
-    -- Solve the RLC model iteratively
+    -- Solve the RLC model iteratively.
     var L : float = w.inductance
     var rR : float = 1.0 / w.resistance
     var rC : float = 1.0 / w.capacitance
     for s = 1, steps + 1 do
-      -- first, figure out the new current from the voltage differential
+      -- First, figure out the new current from the voltage differential
       -- and our inductance:
       -- dV = R*I + L*I' ==> I = (dV - L*I')/R
       for i = 0, WS do
         temp_i[i] = ((temp_v[i + 1] - temp_v[i]) -
                      (L * (temp_i[i] - old_i[i]) * rdT)) * rR
       end
-      -- Now update the inter-node voltages
+      -- Now update the inter-node voltages.
       for i = 0, WS - 1 do
         temp_v[i + 1] = old_v[i] + dT * (temp_i[i] - temp_i[i + 1]) * rC
       end
@@ -103,8 +104,9 @@ end
 
 task distribute_charge(rn : region(Node),
                        rw : region(Wire(rn)))
-where reads(rw.{in_node, out_node, current._0, current._2}),
-      reads writes(rn.charge)
+where
+  reads(rw.{in_node, out_node, current._0, current._2}),
+  reads writes(rn.charge)
 do
   for w in rw do
     var in_current = -dT * w.current._0
@@ -115,8 +117,9 @@ do
 end
 
 task update_voltages(rn : region(Node))
-where reads(rn.{capacitance, leakage}),
-      reads writes(rn.{voltage, charge})
+where
+  reads(rn.{capacitance, leakage}),
+  reads writes(rn.{voltage, charge})
 do
   for n in rn do
     var voltage = n.voltage + n.charge / n.capacitance

@@ -102,7 +102,7 @@ do
       -- dV = R*I + L*I' ==> I = (dV - L*I')/R
       for i = 0, WS do
         temp_i[i] = ((temp_v[i + 1] - temp_v[i]) -
-                     (L * (temp_i[i] - old_i[i]) * rdT)) * rC
+                     (L * (temp_i[i] - old_i[i]) * rdT)) * rR
       end
       -- Now update the inter-node voltages.
       for i = 0, WS - 1 do
