@@ -192,7 +192,10 @@ task toplevel()
   end
 
   -- Wait for all previous tasks to complete and measure the elapsed time.
-  helper.wait_for(rn, rw)
+  for i = 0, conf.num_pieces do
+    __forbid(__inline)
+    helper.wait_for(pn_equal[i], pw[i])
+  end
   var ts_end = helper.timestamp()
   c.printf("simulation complete\n")
 
