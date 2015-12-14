@@ -181,7 +181,7 @@ task toplevel()
     helper.initialize_pointers(pn_private[i], pn_shared[i], pn_ghost[i], pw[i])
   end
 
-  helper.wait_for(rn, rw)
+  helper.wait_for(helper.block(rn, rw))
 
   --helper.dump_graph(conf, rn, rw)
 
@@ -201,10 +201,11 @@ task toplevel()
   end
 
   -- Wait for all previous tasks to complete and measure the elapsed time.
+  var _ = 0
   for i = 0, conf.num_pieces do
-    __forbid(__inline)
-    helper.wait_for(pn_equal[i], pw[i])
+    _ += helper.block(pn_equal[i], pw[i])
   end
+  helper.wait_for(_)
   var ts_end = helper.timestamp()
   c.printf("simulation complete\n")
 
