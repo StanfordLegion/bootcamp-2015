@@ -65,7 +65,9 @@ def make_session_notebook(source_dir, notebook_path, regent_file):
     exercise = make_markdown_cell('## Exercise')
     circuit_path = os.path.join(source_dir, regent_file)
     circuit = make_code_cell(open(circuit_path, 'rb').read())
-    notebook = make_notebook([instructions, syntax, exercise, circuit])
+    up_next_path = os.path.join(source_dir, 'up_next.md')
+    up_next = make_markdown_cell(open(up_next_path, 'rb').read())
+    notebook = make_notebook([instructions, syntax, exercise, circuit, up_next])
     with open(notebook_path, 'wb') as f: json.dump(notebook, f, indent=1)
 
 def make_all_sessions(exercise_dir, helpers_dir, notebook_dir, with_solution):

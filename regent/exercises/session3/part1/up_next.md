@@ -1,0 +1,1 @@
+Next up: [try GPU mapping on a larger problem size](Session 3 Part 2.ipynb).

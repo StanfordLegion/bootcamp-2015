@@ -1,0 +1,1 @@
+Next up: [partition the simulation so that it can run in parallel](Session 2 Part 1.ipynb).
