@@ -50,7 +50,7 @@ def make_notebook(cells):
                 'file_extension': 'rg',
                 'mimetype': 'text/x-regent',
                 'name': 'regent',
-                'pygments_lexer': 'lua',
+                'pygments_lexer': 'regent',
             },
         },
         'nbformat': 4,
