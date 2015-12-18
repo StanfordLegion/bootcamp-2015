@@ -12,7 +12,7 @@ Generally speaking, we'll start by creating an initial *independent* partition o
 <tr style="border: 0px;">
 <td style="border: 0px; padding: 10px;">
 Equal Partition of Nodes
-<img src="/images/circuit/partition1_equal.png" width="250">
+<img src="//regent-lang.org/images/circuit/partition1_equal.png" width="250">
 </td>
 </tr>
 </table>
@@ -25,15 +25,15 @@ This requires the use of *dependent* partitions (i.e. partitions computed from o
 <tr style="border: 0px;">
 <td style="border: 0px; padding: 10px;">
 Preimage (Partition of Wires)
-<img src="/images/circuit/partition2_wires.png" width="250">
+<img src="//regent-lang.org/images/circuit/partition2_wires.png" width="250">
 </td>
 <td style="border: 0px; padding: 10px;">
 Image (Partition of Nodes)
-<img src="/images/circuit/partition3_image.png" width="250">
+<img src="//regent-lang.org/images/circuit/partition3_image.png" width="250">
 </td>
 <td style="border: 0px; padding: 10px;">
 Crossing (Partition of Nodes)
-<img src="/images/circuit/partition4_crossing.png" width="250">
+<img src="//regent-lang.org/images/circuit/partition4_crossing.png" width="250">
 </td>
 </tr>
 </table>
@@ -44,15 +44,15 @@ With this in mind, we can now compute three new partitions (which will actually 
 <tr style="border: 0px;">
 <td style="border: 0px; padding: 10px;">
 Private (Partition of Nodes)
-<img src="/images/circuit/partition5_private.png" width="250">
+<img src="//regent-lang.org/images/circuit/partition5_private.png" width="250">
 </td>
 <td style="border: 0px; padding: 10px;">
 Shared (Partition of Nodes)
-<img src="/images/circuit/partition6_shared.png" width="250">
+<img src="//regent-lang.org/images/circuit/partition6_shared.png" width="250">
 </td>
 <td style="border: 0px; padding: 10px;">
 Ghost (Partition of Nodes)
-<img src="/images/circuit/partition7_ghost.png" width="250">
+<img src="//regent-lang.org/images/circuit/partition7_ghost.png" width="250">
 </td>
 </tr>
 </table>
