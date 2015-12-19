@@ -7,13 +7,13 @@ local c = regentlib.c
 
 -- These two field spaces hold currents and voltages,
 -- respectively. You'll need to reference them below.
-fspace Currents {
+struct Currents {
   _0 : float,
   _1 : float,
   _2 : float,
 }
 
-fspace Voltages {
+struct Voltages {
   _1 : float,
   _2 : float,
 }
